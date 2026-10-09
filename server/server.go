@@ -1375,6 +1375,7 @@ func (s *Server) testLLM(w http.ResponseWriter, r *http.Request) {
 		ProfileID        *int64 `json:"profile_id"`         // 测已存 profile 时传入：api_key 为空则用它存的 key
 		Streaming        *bool  `json:"streaming"`          // 省略=流式，与保存 profile 时同一套默认
 		SessionHeaderKey string `json:"session_header_key"` // 非空=测试时也带该自定义会话头，值为一次性随机 session id
+MaxTokensField   *string `json:"max_tokens_field"` // nil = use saved profile; explicit empty = legacy max_tokens
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		writeErr(w, 400, err.Error())
@@ -1385,6 +1386,13 @@ func (s *Server) testLLM(w http.ResponseWriter, r *http.Request) {
 	// reasoning_effort/thinking field fails the test too (no false "test ok, run 400").
 	cfg.ThinkingType = req.ThinkingType
 	cfg.ReasoningEffort = req.ReasoningEffort
+if req.MaxTokensField != nil {
+if *req.MaxTokensField != "" && *req.MaxTokensField != "max_completion_tokens" {
+writeErr(w, 400, "max_tokens_field must be empty or max_completion_tokens")
+return
+}
+cfg.MaxTokensField = *req.MaxTokensField
+}
 	// 同理，收发模式也照该 profile 的选择来：只支持其中一种通道的端点必须在这里就
 	// 暴露，而不是等会话里才发现"测试通过的配置根本跑不动"。
 	if req.Streaming != nil {
@@ -1397,7 +1405,7 @@ func (s *Server) testLLM(w http.ResponseWriter, r *http.Request) {
 	// API Key 解析优先级：表单输入 > 指定 profile 存的 key > 全局配置的 key。
 	// 已存 profile 的 key 不回传浏览器，所以测试已存配置时表单为空，需从 DB 取。
 	// 会话头名同理：表单未带时用已存 profile 的值兜底。
-	if req.ProfileID != nil && (cfg.APIKey == "" || cfg.SessionHeaderKey == "") {
+if req.ProfileID != nil && (cfg.APIKey == "" || cfg.SessionHeaderKey == "" || req.MaxTokensField == nil) {
 		if p, err := s.m.pg.ProfileByID(*req.ProfileID); err == nil && p != nil {
 			if cfg.APIKey == "" {
 				cfg.APIKey = p.APIKey
@@ -1405,6 +1413,9 @@ func (s *Server) testLLM(w http.ResponseWriter, r *http.Request) {
 			if cfg.SessionHeaderKey == "" {
 				cfg.SessionHeaderKey = p.SessionHeaderKey
 			}
+if req.MaxTokensField == nil {
+cfg.MaxTokensField = p.MaxTokensField
+}
 		}
 	}
 	if cfg.APIKey == "" {
