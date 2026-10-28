@@ -780,6 +780,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /api/tokens/daily", s.tokenDailyStats)
 	mux.HandleFunc("GET /api/tokens/conversations", s.conversationTokens)
 	mux.HandleFunc("GET /api/tokens/usage", s.pgUsageStats) // 全局 llm_usage 聚合（仪表盘新版视图）
+mux.HandleFunc("GET /api/llm/http-stats", s.llmHTTPStats)
 
 	mux.HandleFunc("GET /api/audit", s.getAudit)
 	mux.HandleFunc("POST /api/gc", s.gc)
@@ -1405,8 +1406,10 @@ cfg.MaxTokensField = *req.MaxTokensField
 	// API Key 解析优先级：表单输入 > 指定 profile 存的 key > 全局配置的 key。
 	// 已存 profile 的 key 不回传浏览器，所以测试已存配置时表单为空，需从 DB 取。
 	// 会话头名同理：表单未带时用已存 profile 的值兜底。
-if req.ProfileID != nil && (cfg.APIKey == "" || cfg.SessionHeaderKey == "" || req.MaxTokensField == nil) {
+profileName := "连接测试"
+if req.ProfileID != nil && s.m != nil && s.m.pg != nil {
 		if p, err := s.m.pg.ProfileByID(*req.ProfileID); err == nil && p != nil {
+			profileName = p.Name
 			if cfg.APIKey == "" {
 				cfg.APIKey = p.APIKey
 			}
@@ -1430,7 +1433,11 @@ cfg.MaxTokensField = p.MaxTokensField
 	// 重试参数【不】带进连接测试:测试有 30s 硬超时,把配置的重试次数/长间隔叠上去
 	// 只会让一个本来能用的端点测成"超时失败"。测试看的是"这个端点通不通",重试节奏
 	// 是跑起来之后的事。
-	lat, reply, err := agent.TestConnection(r.Context(), cfg)
+	testCtx := r.Context()
+	if s.m != nil {
+		testCtx = llmrec.WithHTTPRecording(testCtx, s.m.PG(), cfg.Model, profileName, "connection-test")
+	}
+	lat, reply, err := agent.TestConnection(testCtx, cfg)
 	if err != nil {
 		writeJSON(w, 200, map[string]any{"ok": false, "error": err.Error()})
 		return

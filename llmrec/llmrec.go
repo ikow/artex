@@ -135,6 +135,8 @@ func (r *Recorder) Stream(ctx context.Context, req llm.CompletionRequest) iter.S
 		taskID = parsedID
 	}
 
+	ctx = r.withHTTPRecording(ctx, taskID, expID, worker)
+
 	// Serialize the request only when storing bodies (this is the expensive part).
 	// Alongside it, attach a Capture so the HTTP transport can hand back the
 	// untouched wire bodies — the normalized view below cannot reconstruct them
@@ -232,6 +234,8 @@ func (r *Recorder) Complete(ctx context.Context, req llm.CompletionRequest) (llm
 	if taskID == "" {
 		taskID = parsedID
 	}
+
+	ctx = r.withHTTPRecording(ctx, taskID, expID, worker)
 
 	reqBody := ""
 	var capt *Capture

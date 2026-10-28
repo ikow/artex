@@ -350,9 +350,16 @@ func (t quotaAwareTransport) RoundTrip(req *http.Request) (*http.Response, error
 	// them: norma builds the request body internally and decodes the SSE response
 	// before either reaches the recorder.
 	capt := llmrec.CaptureFrom(req.Context())
-	capt.SetRequest(requestBodySnapshot(req))
+	if capt != nil {
+		capt.SetRequest(requestBodySnapshot(req))
+	}
 
+	finishAttempt := llmrec.BeginHTTPAttempt(req.Context())
+	started := time.Now()
 	resp, err := t.base.RoundTrip(req)
+	// Observe the original status before a quota-exhaustion 429 becomes a 402.
+	// The observer never reads the body, so SSE streaming remains unchanged.
+	finishAttempt(resp, err, time.Since(started))
 	if err != nil || resp == nil {
 		return resp, err
 	}
