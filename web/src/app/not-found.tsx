@@ -1,10 +1,15 @@
 "use client";
+import { useUILocale } from "@/lib/i18n/react";
+
 
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 
 export default function NotFound() {
+  "use no memo";
+  const uiLocale = useUILocale();
+
   return (
     <div className="flex h-dvh flex-col items-center justify-center space-y-2 text-center">
       <h1 className="font-semibold text-2xl">Page not found.</h1>

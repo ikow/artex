@@ -1,4 +1,6 @@
 "use client";
+import { useUILocale } from "@/lib/i18n/react";
+
 
 import type * as React from "react";
 
@@ -12,6 +14,9 @@ type SimpleIconProps = {
 } & React.SVGProps<SVGSVGElement>;
 
 export function SimpleIcon({ icon, className, ...props }: SimpleIconProps) {
+  "use no memo";
+  const uiLocale = useUILocale();
+
   const { title, path } = icon;
 
   return (

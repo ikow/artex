@@ -1,3 +1,6 @@
+"use client";
+
+import { useUILocale } from "@/lib/i18n/react";
 import { cn } from "@/lib/utils";
 import {
   statusMeta,
@@ -18,6 +21,9 @@ export function StatusBadge({
   dot?: boolean;
   className?: string;
 }) {
+  "use no memo";
+  const uiLocale = useUILocale();
+
   const meta = statusMeta(domain, value);
   return (
     <span
@@ -36,5 +42,8 @@ export function StatusBadge({
 }
 
 export function ToneDot({ tone }: { tone: Tone }) {
+  "use no memo";
+  const uiLocale = useUILocale();
+
   return <span className={cn("size-2 rounded-full", toneDot[tone])} />;
 }

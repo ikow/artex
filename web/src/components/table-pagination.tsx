@@ -1,4 +1,7 @@
 "use client";
+import { t as uiText } from "@/lib/i18n/core";
+import { useUILocale } from "@/lib/i18n/react";
+
 
 import { useEffect, useRef } from "react";
 
@@ -38,6 +41,9 @@ export function TablePagination({
   onPageSizeChange,
   pageSizeOptions = [10, 20, 50],
 }: TablePaginationProps) {
+  "use no memo";
+  const uiLocale = useUILocale();
+
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const safePage = Math.min(Math.max(1, page), totalPages);
   const from = total === 0 ? 0 : (safePage - 1) * pageSize + 1;
@@ -64,13 +70,12 @@ export function TablePagination({
             ))}
           </SelectContent>
         </Select>
-        <span>条/页</span>
+        <span>{uiText("条/页")}</span>
         {total > 0 ? (
           <span className="tabular-nums">
-            {from}–{to} / 共 {total} 条
-          </span>
+            {uiText("{0}–{1} / 共 {2} 条", [from, to, total])}</span>
         ) : (
-          <span>共 0 条</span>
+          <span>{uiText("共 0 条")}</span>
         )}
       </div>
 
@@ -83,7 +88,7 @@ export function TablePagination({
                 size="icon-sm"
                 disabled={safePage === 1}
                 onClick={() => onPageChange(safePage - 1)}
-                aria-label="上一页"
+                aria-label={uiText("上一页")}
               >
                 <ChevronLeftIcon className="size-4" />
               </Button>
@@ -112,7 +117,7 @@ export function TablePagination({
                 size="icon-sm"
                 disabled={safePage === totalPages}
                 onClick={() => onPageChange(safePage + 1)}
-                aria-label="下一页"
+                aria-label={uiText("下一页")}
               >
                 <ChevronRightIcon className="size-4" />
               </Button>

@@ -1,4 +1,7 @@
 "use client";
+import { t as uiText } from "@/lib/i18n/core";
+import { useUILocale } from "@/lib/i18n/react";
+
 
 import * as React from "react";
 import { Input } from "@/components/ui/input";
@@ -37,6 +40,9 @@ function fmtTime(ts: string) {
 }
 
 export default function LogsPage() {
+  "use no memo";
+  const uiLocale = useUILocale();
+
   const [lines, setLines] = React.useState<LogLine[]>([]);
   const [q, setQ] = React.useState("");
   const [level, setLevel] = React.useState<"all" | LogLine["level"]>("all");
@@ -142,13 +148,13 @@ export default function LogsPage() {
   return (
     <div className="flex flex-1 flex-col gap-3">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">系统日志</h1>
-        <p className="text-muted-foreground text-sm">后端实时日志流(planner / worker / 数据库 / 流量 …)</p>
+        <h1 className="text-xl font-semibold tracking-tight">{uiText("系统日志")}</h1>
+        <p className="text-muted-foreground text-sm">{uiText("后端实时日志流(planner / worker / 数据库 / 流量 …)")}</p>
       </div>
       <div className="flex flex-1 flex-col gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <Input
-            placeholder="过滤(文本 / tag)…"
+            placeholder={uiText("过滤(文本 / tag)…")}
             value={q}
             onChange={(e) => setQ(e.target.value)}
             className="h-8 max-w-xs"
@@ -162,7 +168,7 @@ export default function LogsPage() {
                 className="h-8"
                 onClick={() => setLevel(lv)}
               >
-                {lv === "all" ? "全部" : lv}
+                {lv === "all" ? uiText("全部") : lv}
               </Button>
             ))}
           </div>
@@ -172,15 +178,13 @@ export default function LogsPage() {
             className="h-8"
             onClick={() => setPaused((p) => !p)}
           >
-            {paused ? "已暂停" : "暂停"}
+            {paused ? uiText("已暂停") : uiText("暂停")}
           </Button>
           <Button size="sm" variant="outline" className="h-8" onClick={() => setLines([])}>
-            清空
-          </Button>
+            {uiText("清空")}</Button>
           <span className="ml-auto text-xs text-muted-foreground">
-            {counts.total} 行 ·{" "}
-            <span className="text-amber-600 dark:text-amber-400">{counts.warn} 警告</span> ·{" "}
-            <span className="text-red-600 dark:text-red-400">{counts.error} 错误</span>
+            {uiText("{0} 行 ·{1}", [counts.total, " "])}<span className="text-amber-600 dark:text-amber-400">{uiText("{0} 警告", [counts.warn])}</span> ·{" "}
+            <span className="text-red-600 dark:text-red-400">{uiText("{0} 错误", [counts.error])}</span>
           </span>
         </div>
 
@@ -200,12 +204,12 @@ export default function LogsPage() {
                 disabled={loadingHistory}
                 onClick={loadOlderHistory}
               >
-                {loadingHistory ? "加载中…" : "加载更早日志"}
+                {loadingHistory ? uiText("加载中…") : uiText("加载更早日志")}
               </Button>
             </div>
           )}
           {filtered.length === 0 ? (
-            <p className="py-10 text-center text-muted-foreground">暂无日志。</p>
+            <p className="py-10 text-center text-muted-foreground">{uiText("暂无日志。")}</p>
           ) : (
             filtered.map((l) => {
               const body =

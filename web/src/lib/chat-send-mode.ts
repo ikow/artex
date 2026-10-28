@@ -1,4 +1,6 @@
 "use client";
+import { t as uiText } from "@/lib/i18n/core";
+
 
 import * as React from "react";
 
@@ -13,8 +15,8 @@ export const CHAT_SEND_MODE_KEY = "artex_chat_send_mode";
 export const DEFAULT_CHAT_SEND_MODE: ChatSendMode = "enter";
 
 export const CHAT_SEND_MODE_OPTIONS: { value: ChatSendMode; label: string }[] = [
-  { value: "enter", label: "Enter 发送，Shift+Enter 换行" },
-  { value: "ctrl-enter", label: "Ctrl+Enter 发送，Enter 换行" },
+  { value: "enter", get label() { return uiText("Enter 发送，Shift+Enter 换行"); } },
+  { value: "ctrl-enter", get label() { return uiText("Ctrl+Enter 发送，Enter 换行"); } },
 ];
 
 function parseMode(raw: string | null): ChatSendMode {

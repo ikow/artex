@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "build:static": "NEXT_EXPORT=1 next build",
+    "test:i18n": "node --test tests/i18n.test.cjs",
     "start": "next start",
     "lint": "biome lint",
     "format": "biome format --write",

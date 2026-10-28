@@ -1,4 +1,7 @@
 "use client";
+import { useUILocale } from "@/lib/i18n/react";
+import { t as uiText } from "@/lib/i18n/core";
+
 
 import { Monitor, Moon, Sun } from "lucide-react";
 
@@ -9,6 +12,9 @@ import { usePreferencesStore } from "@/stores/preferences/preferences-provider";
 const THEME_CYCLE = ["light", "dark", "system"] as const;
 
 export function ThemeSwitcher() {
+  "use no memo";
+  const uiLocale = useUILocale();
+
   const themeMode = usePreferencesStore((s) => s.themeMode);
   const setThemeMode = usePreferencesStore((s) => s.setThemeMode);
 
@@ -21,7 +27,9 @@ export function ThemeSwitcher() {
   };
 
   return (
-    <Button size="icon" onClick={cycleTheme} aria-label={`Current theme: ${themeMode}. Click to cycle themes`}>
+    <Button size="icon" onClick={cycleTheme} aria-label={uiText("当前主题：{0}。点击切换主题", [
+      themeMode === "light" ? uiText("浅色") : themeMode === "dark" ? uiText("深色") : uiText("跟随系统"),
+    ])}>
       {/* SYSTEM */}
       <Monitor className="hidden [html[data-theme-mode=system]_&]:block" />
 

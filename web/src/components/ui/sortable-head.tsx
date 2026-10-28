@@ -1,4 +1,7 @@
 "use client";
+import { t as uiText } from "@/lib/i18n/core";
+import { useUILocale } from "@/lib/i18n/react";
+
 
 import { ArrowDownIcon, ArrowUpDownIcon, ArrowUpIcon } from "lucide-react";
 import type * as React from "react";
@@ -28,12 +31,15 @@ export function SortableHead<Field extends string>({
   className?: string;
   onSort: (field: Field) => void;
 }) {
+  "use no memo";
+  const uiLocale = useUILocale();
+
   const active = activeField === field;
   let ariaSort: React.AriaAttributes["aria-sort"] = "none";
   if (active) ariaSort = direction === "asc" ? "ascending" : "descending";
 
-  let actionLabel = `按${label}倒序排序`;
-  if (active) actionLabel = `${label}当前${direction === "asc" ? "正序" : "倒序"}，点击切换排序方向`;
+  let actionLabel = uiText("按{0}倒序排序", [label]);
+  if (active) actionLabel = uiText("{0}当前{1}，点击切换排序方向", [label, direction === "asc" ? uiText("正序") : uiText("倒序")]);
 
   let icon = <ArrowUpDownIcon className="size-3.5 opacity-40 transition-opacity group-hover/sort:opacity-100" />;
   if (active) icon = direction === "asc" ? <ArrowUpIcon className="size-3.5" /> : <ArrowDownIcon className="size-3.5" />;

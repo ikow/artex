@@ -1,4 +1,6 @@
 "use client";
+import { useUILocale } from "@/lib/i18n/react";
+
 
 import type { ReactNode } from "react";
 import * as React from "react";
@@ -29,6 +31,9 @@ function readPref<T extends string>(key: string, allowed: readonly T[], fallback
 }
 
 export default function Layout({ children }: Readonly<{ children: ReactNode }>) {
+  "use no memo";
+  const uiLocale = useUILocale();
+
   // Client-side auth gate — replaces the Next proxy/middleware that static export
   // disables. No token → bounce to /login; render nothing until confirmed so no
   // protected UI (or its API calls) flashes for a logged-out visitor.

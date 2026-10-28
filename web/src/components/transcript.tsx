@@ -1,4 +1,7 @@
 "use client";
+import { t as uiText, getLocale } from "@/lib/i18n/core";
+import { useUILocale } from "@/lib/i18n/react";
+
 
 import * as React from "react";
 import {
@@ -90,7 +93,7 @@ function groupSteps(steps: Activity[], chat: boolean): Group[] {
   for (const s of steps) {
     if (s.kind === "usage") continue; // live token-usage marker — not a rendered step
     if (s.kind === "round") {
-      out.push({ type: "round", key: s.seq, label: s.summary || "新一轮" }); // planner round boundary
+      out.push({ type: "round", key: s.seq, label: s.summary || uiText("新一轮") }); // planner round boundary
       continue;
     }
     if (s.kind === "intercept_request") {
@@ -129,19 +132,22 @@ function groupSteps(steps: Activity[], chat: boolean): Group[] {
   return out;
 }
 
-const kindLabel = (k: string) => (k === "thinking" ? "推理" : k === "result" ? "总结" : "说明");
+const kindLabel = (k: string) => (k === "thinking" ? uiText("推理") : k === "result" ? uiText("总结") : uiText("说明"));
 
 function ActivityTime({ ts }: { ts: string }) {
+  "use no memo";
+  const uiLocale = useUILocale();
+
   const date = new Date(ts);
   if (!ts || Number.isNaN(date.getTime())) return null;
   return (
     <time
       dateTime={date.toISOString()}
-      title={date.toLocaleString("zh-CN")}
+      title={date.toLocaleString(getLocale())}
       className="text-[10px] text-muted-foreground tabular-nums"
       suppressHydrationWarning
     >
-      {date.toLocaleString("zh-CN", {
+      {date.toLocaleString(getLocale(), {
         month: "2-digit",
         day: "2-digit",
         hour: "2-digit",
@@ -191,6 +197,9 @@ function InterceptCard({
   step: Activity;
   getDetail: (seq: number) => Promise<string>;
 }) {
+  "use no memo";
+  const uiLocale = useUILocale();
+
   // extract pending_id from summary: "工具 Bash 请求审批 (#42)"
   const pendingId = React.useMemo(() => {
     const m = /\(#(\d+)\)/.exec(step.summary);
@@ -234,7 +243,7 @@ function InterceptCard({
         setStatusError("");
         if (p.status !== "pending") setDecided(p.status as "allowed" | "denied" | "timeout");
       })
-      .catch((error) => { if (live) setStatusError((error as Error).message || "审批详情加载失败"); });
+      .catch((error) => { if (live) setStatusError((error as Error).message || uiText("审批详情加载失败")); });
     return () => { live = false; };
   }, [pendingId, retry]);
 
@@ -244,7 +253,7 @@ function InterceptCard({
     try {
       await api.interceptDecide(pendingId, decision);
       setDecided(decision);
-      toast.success(decision === "allowed" ? "已允许执行" : "已拒绝执行");
+      toast.success(decision === "allowed" ? uiText("已允许执行") : uiText("已拒绝执行"));
     } catch (e) {
       toast.error((e as Error).message);
     } finally {
@@ -265,7 +274,7 @@ function InterceptCard({
           <ShieldAlertIcon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" />
           <div className="min-w-0 space-y-0.5">
             <div className="flex items-center gap-1.5 font-medium">
-              <span className="text-amber-700 dark:text-amber-400">审批请求</span>
+              <span className="text-amber-700 dark:text-amber-400">{uiText("审批请求")}</span>
               <code className="rounded bg-amber-100 dark:bg-amber-900/50 px-1 font-mono text-amber-800 dark:text-amber-300">
                 {toolName}
               </code>
@@ -280,7 +289,7 @@ function InterceptCard({
         </div>
 
         {step.inherited ? (
-          <Badge variant="outline">历史记录 · 只读</Badge>
+          <Badge variant="outline">{uiText("历史记录 · 只读")}</Badge>
         ) : decided ? (
           <span className={
             "shrink-0 rounded px-2 py-0.5 text-[11px] font-medium " +
@@ -290,7 +299,7 @@ function InterceptCard({
                 ? "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
                 : "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400")
           }>
-            {decided === "allowed" ? "已允许" : decided === "timeout" ? "已超时" : "已拒绝"}
+            {decided === "allowed" ? uiText("已允许") : decided === "timeout" ? uiText("已超时") : uiText("已拒绝")}
           </span>
         ) : (
           <div className="flex shrink-0 gap-1.5">
@@ -301,8 +310,7 @@ function InterceptCard({
               onClick={() => decide("allowed")}
             >
               <CheckIcon className="h-3 w-3" />
-              允许
-            </Button>
+              {uiText("允许")}</Button>
             <Button
               size="sm"
               variant="destructive"
@@ -311,17 +319,16 @@ function InterceptCard({
               onClick={() => decide("denied")}
             >
               <XIcon className="h-3 w-3" />
-              拒绝
-            </Button>
+              {uiText("拒绝")}</Button>
           </div>
         )}
       </div>
       {pendingId ? (
         <Collapsible open={expanded} onOpenChange={setExpanded} className="mt-2 min-w-0">
           <CollapsibleTrigger asChild>
-            <Button variant="ghost" size="sm" aria-label={expanded ? "收起审批详情" : "展开审批详情"}>
+            <Button variant="ghost" size="sm" aria-label={expanded ? uiText("收起审批详情") : uiText("展开审批详情")}>
               {expanded ? <ChevronDown data-icon="inline-start" /> : <ChevronRight data-icon="inline-start" />}
-              {expanded ? "收起审批详情" : "展开审批详情"}
+              {expanded ? uiText("收起审批详情") : uiText("展开审批详情")}
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent>
@@ -338,9 +345,9 @@ function InterceptCard({
             ) : statusError ? (
               <div className="flex flex-wrap items-center gap-2 p-3" role="alert">
                 <span>{statusError}</span>
-                <Button variant="outline" size="sm" onClick={() => setRetry((value) => value + 1)}>重试详情</Button>
+                <Button variant="outline" size="sm" onClick={() => setRetry((value) => value + 1)}>{uiText("重试详情")}</Button>
               </div>
-            ) : <p className="p-3 text-muted-foreground">正在加载审批详情…</p>}
+            ) : <p className="p-3 text-muted-foreground">{uiText("正在加载审批详情…")}</p>}
           </CollapsibleContent>
         </Collapsible>
       ) : null}
@@ -362,6 +369,9 @@ function ToolBlock({
   showWorker?: boolean;
   focused?: boolean;
 }) {
+  "use no memo";
+  const uiLocale = useUILocale();
+
   const [open, setOpen] = React.useState(focused);
   const targetRef = React.useRef<HTMLElement>(null);
   const [detail, setDetail] = React.useState<string | null>(null);
@@ -370,7 +380,7 @@ function ToolBlock({
   // effect below re-fetches — so the output shows up instead of being cached out.
   const loadedKey = React.useRef<string | null>(null);
   const { use, result } = group;
-  const toolName = use?.tool || result?.tool || "工具";
+  const toolName = use?.tool || result?.tool || uiText("工具");
   const ToolIcon = toolName === "Bash" ? Terminal : Wrench;
   const running = !result;
   const ok = !!result && !result.is_error;
@@ -383,27 +393,27 @@ function ToolBlock({
     use && use.summary.startsWith(toolName) ? use.summary.slice(toolName.length).trimStart() : (use?.summary ?? "");
   const cmd = toolInputText(toolName, rawCmd);
   // status only — the full result lives behind the expand (【输出】), not previewed inline
-  const statusText = running ? "执行中…" : ok ? "✓" : "✕ 失败";
+  const statusText = running ? uiText("执行中…") : ok ? "✓" : uiText("✕ 失败");
 
   // key over the seqs we'd load; changes when the result (or command) arrives.
-  const detailKey = `${use?.seq ?? ""}:${result?.seq ?? ""}`;
+  const detailKey = `${use?.seq ?? ""}:${result?.seq ?? ""}:${uiLocale}`;
   React.useEffect(() => {
     if (!open || loadedKey.current === detailKey) return;
     let live = true;
-    const segs: { label: string; seq: number }[] = [];
-    if (use) segs.push({ label: "命令", seq: use.seq });
-    if (result) segs.push({ label: "输出" + (result.is_error ? " ✕" : " ✓"), seq: result.seq });
+    const segs: { label: string; seq: number; isCommand: boolean }[] = [];
+    if (use) segs.push({ label: uiText("命令"), seq: use.seq, isCommand: true });
+    if (result) segs.push({ label: uiText("输出") + (result.is_error ? " ✕" : " ✓"), seq: result.seq, isCommand: false });
     void Promise.all(
       segs.map((x) =>
         getDetail(x.seq)
-          .then((d) => d || "（空）")
-          .catch(() => "（加载失败）"),
+          .then((d) => d || uiText("（空）"))
+          .catch(() => uiText("（加载失败）")),
       ),
     ).then((parts) => {
       if (!live) return;
       setDetail(
         segs
-          .map((x, i) => `【${x.label}】\n${x.label === "命令" ? toolInputText(toolName, parts[i]) : parts[i]}`)
+          .map((x, i) => `【${x.label}】\n${x.isCommand ? toolInputText(toolName, parts[i]) : parts[i]}`)
           .join("\n\n"),
       );
       loadedKey.current = detailKey;
@@ -457,7 +467,7 @@ function ToolBlock({
   return (
     <section
       ref={targetRef}
-      aria-label={focused ? `定位的工具调用 #${use?.seq}` : undefined}
+      aria-label={focused ? uiText("定位的工具调用 #{0}", [use?.seq]) : undefined}
       className={focused ? "rounded-lg border-2 border-primary bg-primary/5 p-3 text-xs" : "text-xs"}
     >
       <button type="button" onClick={toggle} className="flex w-full items-start gap-2 py-1 text-left hover:bg-muted/40">
@@ -472,7 +482,7 @@ function ToolBlock({
       </button>
       {open && (
         <pre className="ml-7 mb-1 max-h-72 overflow-auto whitespace-pre-wrap break-all rounded bg-muted/50 p-2 font-mono text-[11px] leading-relaxed">
-          {detail ?? "加载中…"}
+          {detail ?? uiText("加载中…")}
         </pre>
       )}
     </section>
@@ -490,6 +500,9 @@ function MessageBlock({
   getDetail: (seq: number) => Promise<string>;
   showWorker?: boolean;
 }) {
+  "use no memo";
+  const uiLocale = useUILocale();
+
   const [open, setOpen] = React.useState(false);
   const [detail, setDetail] = React.useState<string | null>(null);
   // like ToolBlock: keyed by the group's step seqs so streamed steps arriving
@@ -536,12 +549,12 @@ function MessageBlock({
         {showWorker && <span className={chip(group.worker)}>{group.worker}</span>}
         <span className={"min-w-0 flex-1 truncate " + tone}>
           {body}
-          {hasThinking && <span className="ml-1 text-[10px] text-muted-foreground">· 含推理</span>}
+          {hasThinking && <span className="ml-1 text-[10px] text-muted-foreground">{uiText("· 含推理")}</span>}
         </span>
       </button>
       {open && (
         <pre className="ml-7 mb-1 max-h-72 overflow-auto whitespace-pre-wrap break-all rounded bg-muted/50 p-2 font-mono text-[11px] leading-relaxed">
-          {detail ?? "加载中…"}
+          {detail ?? uiText("加载中…")}
         </pre>
       )}
     </div>
@@ -580,6 +593,9 @@ function parseUserBody(body: string): { text: string; attachments: MsgAttachment
 }
 
 function UserRow({ step, intent, getDetail }: { step: Activity; intent?: boolean; getDetail: (seq: number) => Promise<string> }) {
+  "use no memo";
+  const uiLocale = useUILocale();
+
   const Icon = intent ? CrosshairIcon : UserIcon;
   const [ref, inView] = useInView();
   // Optimistic echoes carry their detail inline; persisted rows lazy-load it on scroll.
@@ -637,6 +653,9 @@ function UserRow({ step, intent, getDetail }: { step: Activity; intent?: boolean
 // collapsed. The summary is a truncated first line, so the full text is pulled
 // from the detail and shown inline.
 function AnswerBlock({ step, getDetail }: { step: Activity; getDetail: (seq: number) => Promise<string> }) {
+  "use no memo";
+  const uiLocale = useUILocale();
+
   const [ref, inView] = useInView();
   const [full, setFull] = React.useState<string | null>(null);
   React.useEffect(() => {
@@ -689,6 +708,9 @@ function ExecView({
   fetchDetail?: (seq: number) => Promise<string>;
   focusedSeq?: number;
 }) {
+  "use no memo";
+  const uiLocale = useUILocale();
+
   const showWorker = new Set(activity.map((a) => a.worker)).size > 1;
   // default detail fetcher: the task-scoped activity endpoint. The chat page passes
   // its own (conversation-scoped) fetcher instead.
@@ -745,6 +767,9 @@ export function Transcript({
   fetchDetail?: (seq: number) => Promise<string>;
   focusedSeq?: number;
 }) {
+  "use no memo";
+  const uiLocale = useUILocale();
+
   const transcriptRef = React.useRef<HTMLDivElement>(null);
   const [focusPadding, setFocusPadding] = React.useState(0);
   React.useLayoutEffect(() => {
@@ -767,8 +792,7 @@ export function Transcript({
             <span className="size-1.5 animate-bounce rounded-full bg-blue-500 [animation-delay:-0.15s]" />
             <span className="size-1.5 animate-bounce rounded-full bg-blue-500" />
           </span>
-          实时流式中…
-        </div>
+          {uiText("实时流式中…")}</div>
       )}
     </div>
   );

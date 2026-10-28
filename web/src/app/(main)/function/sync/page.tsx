@@ -1,4 +1,7 @@
 "use client";
+import { t as uiText } from "@/lib/i18n/core";
+import { useUILocale } from "@/lib/i18n/react";
+
 
 import * as React from "react";
 
@@ -28,17 +31,20 @@ type SSStatus = {
 type Dimension = "project" | "task";
 
 const ASSET_TYPES: { key: string; label: string }[] = [
-  { key: "subdomain", label: "子域名" },
-  { key: "service", label: "服务" },
+  { key: "subdomain", get label() { return uiText("子域名"); } },
+  { key: "service", get label() { return uiText("服务"); } },
   { key: "app", label: "App" },
 ];
 
 export default function AssetSyncPage() {
+  "use no memo";
+  const uiLocale = useUILocale();
+
   return (
     <div className="p-4 md:p-6">
       <div className="mb-4">
-        <h1 className="font-semibold text-xl">资产同步</h1>
-        <p className="text-muted-foreground text-sm">从外部数据源同步资产入库</p>
+        <h1 className="font-semibold text-xl">{uiText("资产同步")}</h1>
+        <p className="text-muted-foreground text-sm">{uiText("从外部数据源同步资产入库")}</p>
       </div>
       <Tabs defaultValue="scopesentry">
         <TabsList>
@@ -53,6 +59,9 @@ export default function AssetSyncPage() {
 }
 
 function ScopeSentryPanel() {
+  "use no memo";
+  const uiLocale = useUILocale();
+
   const [status, setStatus] = React.useState<SSStatus | null>(null);
   const [loadingStatus, setLoadingStatus] = React.useState(true);
 
@@ -61,7 +70,7 @@ function ScopeSentryPanel() {
     api
       .ssStatus()
       .then(setStatus)
-      .catch((e) => toast.error(`读取数据源状态失败：${e.message}`))
+      .catch((e) => toast.error(uiText("读取数据源状态失败：{0}", [e.message])))
       .finally(() => setLoadingStatus(false));
   }, []);
 
@@ -79,8 +88,7 @@ function ScopeSentryPanel() {
       ) : (
         <Card>
           <CardContent className="py-8 text-center text-muted-foreground text-sm">
-            数据源就绪后即可选择项目 / 任务进行同步。
-          </CardContent>
+            {uiText("数据源就绪后即可选择项目 / 任务进行同步。")}</CardContent>
         </Card>
       )}
     </div>
@@ -98,6 +106,9 @@ function DataSourceCard({
   loading: boolean;
   onChanged: () => void;
 }) {
+  "use no memo";
+  const uiLocale = useUILocale();
+
   const [url, setUrl] = React.useState("");
   const [apiKey, setApiKey] = React.useState("");
   const [busy, setBusy] = React.useState(false);
@@ -110,25 +121,25 @@ function DataSourceCard({
     setBusy(true);
     try {
       await api.ssDatasource({});
-      toast.success("已创建 ScopeSentry 数据源，请填写地址与密钥");
+      toast.success(uiText("已创建 ScopeSentry 数据源，请填写地址与密钥"));
       onChanged();
     } catch (e) {
-      toast.error(`创建失败：${(e as Error).message}`);
+      toast.error(uiText("创建失败：{0}", [(e as Error).message]));
     } finally {
       setBusy(false);
     }
   };
 
   const save = async () => {
-    if (!url.trim()) return toast.error("请填写 MCP 地址");
+    if (!url.trim()) return toast.error(uiText("请填写 MCP 地址"));
     setBusy(true);
     try {
       const r = await api.ssDatasource({ url: url.trim(), api_key: apiKey.trim() });
-      toast.success(r.enabled ? "已保存并启用数据源" : "已保存（尚未满足启用条件）");
+      toast.success(r.enabled ? uiText("已保存并启用数据源") : uiText("已保存（尚未满足启用条件）"));
       setApiKey("");
       onChanged();
     } catch (e) {
-      toast.error(`保存失败：${(e as Error).message}`);
+      toast.error(uiText("保存失败：{0}", [(e as Error).message]));
     } finally {
       setBusy(false);
     }
@@ -138,40 +149,35 @@ function DataSourceCard({
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="flex items-center gap-2 text-base">
-          <PlugZapIcon className="size-4" /> 数据源状态
-          <StatusBadge status={status} loading={loading} />
+          <PlugZapIcon className="size-4" /> {uiText(" 数据源状态")}<StatusBadge status={status} loading={loading} />
         </CardTitle>
         <Button variant="ghost" size="sm" onClick={onChanged} disabled={loading}>
-          <RefreshCwIcon className={loading ? "size-4 animate-spin" : "size-4"} /> 刷新
-        </Button>
+          <RefreshCwIcon className={loading ? "size-4 animate-spin" : "size-4"} /> {uiText(" 刷新")}</Button>
       </CardHeader>
       <CardContent className="space-y-3">
         {!status?.exists ? (
           <div className="flex items-center justify-between gap-4">
             <p className="text-muted-foreground text-sm">
-              尚未创建 ScopeSentry 数据源。创建后会新增一个占位 MCP（地址/密钥为空、未启用）。
-            </p>
+              {uiText("尚未创建 ScopeSentry 数据源。创建后会新增一个占位 MCP（地址/密钥为空、未启用）。")}</p>
             <Button onClick={create} disabled={busy}>
-              创建数据源
-            </Button>
+              {uiText("创建数据源")}</Button>
           </div>
         ) : (
           <>
             {!status.configured && (
               <p className="text-amber-600 text-sm dark:text-amber-500">
-                数据源已创建但未配置，请填写 MCP 地址与 API Key 后启用。
-              </p>
+                {uiText("数据源已创建但未配置，请填写 MCP 地址与 API Key 后启用。")}</p>
             )}
             {status.configured && !status.enabled && (
-              <p className="text-amber-600 text-sm dark:text-amber-500">数据源已配置但未启用，保存后将自动启用。</p>
+              <p className="text-amber-600 text-sm dark:text-amber-500">{uiText("数据源已配置但未启用，保存后将自动启用。")}</p>
             )}
             <div className="grid gap-3 md:grid-cols-2">
               <div className="space-y-1.5">
-                <Label>MCP 地址</Label>
-                <Input placeholder="http://<主机>:8082/mcp" value={url} onChange={(e) => setUrl(e.target.value)} />
+                <Label>{uiText("MCP 地址")}</Label>
+                <Input placeholder={uiText("http://<主机>:8082/mcp")} value={url} onChange={(e) => setUrl(e.target.value)} />
               </div>
               <div className="space-y-1.5">
-                <Label>API Key（X-API-Key，留空保留原值）</Label>
+                <Label>{uiText("API Key（X-API-Key，留空保留原值）")}</Label>
                 <Input
                   type="password"
                   placeholder="ssk_..."
@@ -182,10 +188,9 @@ function DataSourceCard({
             </div>
             <div className="flex items-center gap-2">
               <Button onClick={save} disabled={busy}>
-                保存并启用
-              </Button>
+                {uiText("保存并启用")}</Button>
               {status.enabled && status.tools.length > 0 && (
-                <span className="text-muted-foreground text-xs">已发现 {status.tools.length} 个工具</span>
+                <span className="text-muted-foreground text-xs">{uiText("已发现 {0} 个工具", [status.tools.length])}</span>
               )}
             </div>
           </>
@@ -196,26 +201,30 @@ function DataSourceCard({
 }
 
 function StatusBadge({ status, loading }: { status: SSStatus | null; loading: boolean }) {
-  if (loading || !status) return <Badge variant="secondary">检测中…</Badge>;
-  if (!status.exists) return <Badge variant="destructive">未创建</Badge>;
-  if (!status.configured) return <Badge variant="outline">未配置</Badge>;
-  if (!status.enabled) return <Badge variant="outline">未启用</Badge>;
+  "use no memo";
+  const uiLocale = useUILocale();
+
+  if (loading || !status) return <Badge variant="secondary">{uiText("检测中…")}</Badge>;
+  if (!status.exists) return <Badge variant="destructive">{uiText("未创建")}</Badge>;
+  if (!status.configured) return <Badge variant="outline">{uiText("未配置")}</Badge>;
+  if (!status.enabled) return <Badge variant="outline">{uiText("未启用")}</Badge>;
   if (status.reachable)
     return (
       <Badge className="bg-emerald-600 hover:bg-emerald-600">
-        <CheckCircle2Icon className="mr-1 size-3" /> 已连接
-      </Badge>
+        <CheckCircle2Icon className="mr-1 size-3" /> {uiText(" 已连接")}</Badge>
     );
   return (
     <Badge variant="destructive">
-      <AlertCircleIcon className="mr-1 size-3" /> 不可达
-    </Badge>
+      <AlertCircleIcon className="mr-1 size-3" /> {uiText(" 不可达")}</Badge>
   );
 }
 
 // ── 同步工作区（项目 / 任务维度）────────────────────────────────────────────────
 
 function SyncWorkbench() {
+  "use no memo";
+  const uiLocale = useUILocale();
+
   const [dimension, setDimension] = React.useState<Dimension>("project");
   const [assetTypes, setAssetTypes] = React.useState<Record<string, boolean>>({
     subdomain: true,
@@ -241,7 +250,7 @@ function SyncWorkbench() {
       dimension === "project"
         ? api.ssProjects(page, 50, search).then((r) => setProjects(r.projects))
         : api.ssTasks(page, 50, search).then(setTasks);
-    fn.catch((e) => toast.error(`加载列表失败：${e.message}`)).finally(() => setLoading(false));
+    fn.catch((e) => toast.error(uiText("加载列表失败：{0}", [e.message]))).finally(() => setLoading(false));
   }, [dimension, page, search]);
 
   React.useEffect(() => {
@@ -266,8 +275,8 @@ function SyncWorkbench() {
   const chosenTypes = ASSET_TYPES.filter((t) => assetTypes[t.key]).map((t) => t.key);
 
   const runSync = async () => {
-    if (selected.size === 0) return toast.error(`请至少选择一个${dimension === "project" ? "项目" : "任务"}`);
-    if (chosenTypes.length === 0) return toast.error("请至少选择一种资产类型");
+    if (selected.size === 0) return toast.error(uiText("请至少选择一个{0}", [dimension === "project" ? uiText("项目") : uiText("任务")]));
+    if (chosenTypes.length === 0) return toast.error(uiText("请至少选择一种资产类型"));
     setSyncing(true);
     setResult(null);
     try {
@@ -279,9 +288,9 @@ function SyncWorkbench() {
       });
       setResult(r);
       const total = Object.values(r.synced ?? {}).reduce((a, b) => a + b, 0);
-      toast.success(`同步完成，共入库 ${total} 条资产`);
+      toast.success(uiText("同步完成，共入库 {0} 条资产", [total]));
     } catch (e) {
-      toast.error(`同步失败：${(e as Error).message}`);
+      toast.error(uiText("同步失败：{0}", [(e as Error).message]));
     } finally {
       setSyncing(false);
     }
@@ -292,8 +301,7 @@ function SyncWorkbench() {
       return (
         <TableRow>
           <TableCell colSpan={4} className="py-8 text-center text-muted-foreground text-sm">
-            加载中…
-          </TableCell>
+            {uiText("加载中…")}</TableCell>
         </TableRow>
       );
     }
@@ -301,8 +309,7 @@ function SyncWorkbench() {
       return (
         <TableRow>
           <TableCell colSpan={4} className="py-8 text-center text-muted-foreground text-sm">
-            无数据
-          </TableCell>
+            {uiText("无数据")}</TableCell>
         </TableRow>
       );
     }
@@ -337,7 +344,7 @@ function SyncWorkbench() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">选择数据同步</CardTitle>
+        <CardTitle className="text-base">{uiText("选择数据同步")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* 维度切换 */}
@@ -349,14 +356,14 @@ function SyncWorkbench() {
           }}
         >
           <TabsList>
-            <TabsTrigger value="project">项目维度</TabsTrigger>
-            <TabsTrigger value="task">任务维度</TabsTrigger>
+            <TabsTrigger value="project">{uiText("项目维度")}</TabsTrigger>
+            <TabsTrigger value="task">{uiText("任务维度")}</TabsTrigger>
           </TabsList>
         </Tabs>
 
         {/* 资产类型 + 选项 */}
         <div className="flex flex-wrap items-center gap-4">
-          <span className="font-medium text-sm">同步资产：</span>
+          <span className="font-medium text-sm">{uiText("同步资产：")}</span>
           {ASSET_TYPES.map((t) => (
             <label key={t.key} htmlFor={`at-${t.key}`} className="flex items-center gap-1.5 text-sm">
               <Checkbox
@@ -370,8 +377,7 @@ function SyncWorkbench() {
           {dimension === "project" && (
             <label htmlFor="create-company" className="flex items-center gap-1.5 text-sm">
               <Checkbox id="create-company" checked={createCompany} onCheckedChange={(c) => setCreateCompany(!!c)} />
-              按项目建立企业并写入资产范围
-            </label>
+              {uiText("按项目建立企业并写入资产范围")}</label>
           )}
         </div>
 
@@ -381,7 +387,7 @@ function SyncWorkbench() {
             <SearchIcon className="absolute top-1/2 left-2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               className="pl-8"
-              placeholder={dimension === "project" ? "搜索项目名" : "搜索任务名"}
+              placeholder={dimension === "project" ? uiText("搜索项目名") : uiText("搜索任务名")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={(e) => {
@@ -396,10 +402,9 @@ function SyncWorkbench() {
             <RefreshCwIcon className={loading ? "size-4 animate-spin" : "size-4"} />
           </Button>
           <div className="flex-1" />
-          <span className="text-muted-foreground text-xs">已选 {selected.size}</span>
+          <span className="text-muted-foreground text-xs">{uiText("已选 {0}", [selected.size])}</span>
           <Button onClick={runSync} disabled={syncing || selected.size === 0}>
-            <DownloadIcon className={syncing ? "size-4 animate-pulse" : "size-4"} /> 同步选中
-          </Button>
+            <DownloadIcon className={syncing ? "size-4 animate-pulse" : "size-4"} /> {uiText(" 同步选中")}</Button>
         </div>
 
         {/* 列表 */}
@@ -410,16 +415,16 @@ function SyncWorkbench() {
                 <TableHead className="w-10">
                   <Checkbox checked={rows.length > 0 && selected.size === rows.length} onCheckedChange={toggleAll} />
                 </TableHead>
-                <TableHead>{dimension === "project" ? "项目名" : "任务名"}</TableHead>
+                <TableHead>{dimension === "project" ? uiText("项目名") : uiText("任务名")}</TableHead>
                 {dimension === "project" ? (
                   <>
-                    <TableHead>标签</TableHead>
-                    <TableHead className="text-right">资产数</TableHead>
+                    <TableHead>{uiText("标签")}</TableHead>
+                    <TableHead className="text-right">{uiText("资产数")}</TableHead>
                   </>
                 ) : (
                   <>
-                    <TableHead>状态</TableHead>
-                    <TableHead>时间</TableHead>
+                    <TableHead>{uiText("状态")}</TableHead>
+                    <TableHead>{uiText("时间")}</TableHead>
                   </>
                 )}
               </TableRow>
@@ -431,17 +436,15 @@ function SyncWorkbench() {
         {/* 分页 */}
         <div className="flex items-center justify-end gap-2">
           <Button variant="outline" size="sm" disabled={page <= 1 || loading} onClick={() => setPage((p) => p - 1)}>
-            上一页
-          </Button>
-          <span className="text-muted-foreground text-xs">第 {page} 页</span>
+            {uiText("上一页")}</Button>
+          <span className="text-muted-foreground text-xs">{uiText("第 {0} 页", [page])}</span>
           <Button
             variant="outline"
             size="sm"
             disabled={rows.length < 50 || loading}
             onClick={() => setPage((p) => p + 1)}
           >
-            下一页
-          </Button>
+            {uiText("下一页")}</Button>
         </div>
 
         {/* 结果 */}
@@ -452,8 +455,11 @@ function SyncWorkbench() {
 }
 
 function SyncResult({ result }: { result: Awaited<ReturnType<typeof api.ssSync>> }) {
+  "use no memo";
+  const uiLocale = useUILocale();
+
   const synced = result.synced ?? {};
-  const labels: Record<string, string> = { subdomain: "子域名", service: "服务", app: "App", ip: "IP" };
+  const labels: Record<string, string> = { subdomain: uiText("子域名"), service: uiText("服务"), app: "App", ip: "IP" };
   return (
     <div className="space-y-2 rounded-md border bg-muted/40 p-3 text-sm">
       <div className="flex flex-wrap gap-3">
@@ -464,7 +470,7 @@ function SyncResult({ result }: { result: Awaited<ReturnType<typeof api.ssSync>>
         ))}
       </div>
       {result.companies && result.companies.length > 0 && (
-        <p className="text-muted-foreground">新建/更新企业：{result.companies.join("、")}</p>
+        <p className="text-muted-foreground">{uiText("新建/更新企业：{0}", [result.companies.join("、")])}</p>
       )}
       {result.warnings && result.warnings.length > 0 && (
         <ul className="list-inside list-disc text-amber-600 dark:text-amber-500">
@@ -478,7 +484,7 @@ function SyncResult({ result }: { result: Awaited<ReturnType<typeof api.ssSync>>
           {result.errors.slice(0, 20).map((em) => (
             <li key={em}>{em}</li>
           ))}
-          {result.errors.length > 20 && <li>…共 {result.errors.length} 条错误</li>}
+          {result.errors.length > 20 && <li>{uiText("…共 {0} 条错误", [result.errors.length])}</li>}
         </ul>
       )}
     </div>

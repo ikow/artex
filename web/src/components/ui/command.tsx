@@ -16,6 +16,7 @@ import {
   InputGroupAddon,
 } from "@/components/ui/input-group"
 import { SearchIcon, CheckIcon } from "lucide-react"
+import { UIMessage } from "@/lib/i18n/react"
 
 function Command({
   className,
@@ -34,8 +35,8 @@ function Command({
 }
 
 function CommandDialog({
-  title = "Command Palette",
-  description = "Search for a command to run...",
+  title,
+  description,
   children,
   className,
   showCloseButton = false,
@@ -49,8 +50,8 @@ function CommandDialog({
   return (
     <Dialog {...props}>
       <DialogHeader className="sr-only">
-        <DialogTitle>{title}</DialogTitle>
-        <DialogDescription>{description}</DialogDescription>
+        <DialogTitle>{title ?? <UIMessage message="命令菜单" />}</DialogTitle>
+        <DialogDescription>{description ?? <UIMessage message="搜索要运行的命令…" />}</DialogDescription>
       </DialogHeader>
       <DialogContent
         className={cn(
