@@ -4,6 +4,7 @@
 // are passed through and formatted at the call site.
 
 import type { ChatMention } from "@/lib/chat-mentions";
+import type { LLMHTTPStats } from "@/lib/llm-rate-limits";
 import { MOCK } from "@/lib/mock/enabled";
 import { mockHandle } from "@/lib/mock/handler";
 import type {
@@ -380,6 +381,7 @@ export const api = {
   taskCoverageGraph: (id: string) => get<CoverageGraphData>(`/tasks/${id}/coverage-graph`),
   // 全局 llm_usage 聚合（仪表盘新版 token 视图）：按 profile 总量 + 按天分桶。
   usageStats: (days = 365) => get<UsageStats>(`/tokens/usage?days=${days}`),
+  llmHTTPStats: (hours = 24) => get<LLMHTTPStats>(`/llm/http-stats?hours=${hours}`),
   // ---- 目标管理（总览）----
   // 本任务全部目标（text/vulnclass/state）。
   taskGoals: (id: string) =>

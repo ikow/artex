@@ -1384,3 +1384,24 @@ CREATE INDEX IF NOT EXISTS idx_notification_deliveries_batch
     ON notification_deliveries(batch_id) WHERE batch_id IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_notification_deliveries_channel
     ON notification_deliveries(channel_id, id DESC);
+
+-- Metadata-only HTTP attempt ledger. Independent of full LLM body recording.
+-- No foreign-key cascade: historical usage remains attributable after task deletion.
+CREATE TABLE IF NOT EXISTS llm_http_attempts (
+    id BIGSERIAL PRIMARY KEY,
+    ts TIMESTAMPTZ NOT NULL,
+    call_id TEXT NOT NULL,
+    attempt BIGINT NOT NULL CHECK (attempt > 0),
+    task_id TEXT NOT NULL DEFAULT '',
+    exploration_id BIGINT NOT NULL DEFAULT 0,
+    worker TEXT NOT NULL DEFAULT '',
+    model TEXT NOT NULL,
+    profile_name TEXT NOT NULL DEFAULT '',
+    status_code INTEGER NOT NULL CHECK (status_code BETWEEN 0 AND 599),
+    headers_ms BIGINT NOT NULL CHECK (headers_ms >= 0),
+    error_kind TEXT NOT NULL DEFAULT '',
+    rate_headers JSONB NOT NULL DEFAULT '{}'::jsonb
+);
+CREATE INDEX IF NOT EXISTS idx_llm_http_attempts_ts ON llm_http_attempts(ts DESC);
+CREATE INDEX IF NOT EXISTS idx_llm_http_attempts_limits ON llm_http_attempts(ts DESC, id DESC)
+    WHERE status_code=429;
