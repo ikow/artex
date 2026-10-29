@@ -1,9 +1,7 @@
 "use client";
 
 import { useEffect, useSyncExternalStore, type ReactNode } from "react";
-import { usePathname } from "next/navigation";
 
-import { APP_CONFIG } from "@/config/app-config";
 import { getClientCookie } from "@/lib/cookie.client";
 import { persistPreference } from "@/lib/preferences/preferences-storage";
 
@@ -17,6 +15,7 @@ import {
   translate,
   type Locale,
 } from "./core";
+import { LocalizedMetadata } from "./metadata";
 
 const serverLocale = () => DEFAULT_LOCALE;
 
@@ -39,7 +38,6 @@ export async function chooseLocale(value: string): Promise<void> {
 
 export function LocaleProvider({ children }: { children: ReactNode }) {
   const locale = useUILocale();
-  const pathname = usePathname();
 
   useEffect(() => {
     let saved: string | undefined;
@@ -56,11 +54,14 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     document.documentElement.lang = locale;
-    document.title = APP_CONFIG.meta.title;
-    document.querySelector('meta[name="description"]')?.setAttribute("content", APP_CONFIG.meta.description);
-  }, [locale, pathname]);
+  }, [locale]);
 
   // No locale key or page reload: drafts, dialogs and ongoing subscriptions stay
   // mounted when the language changes. Static export hydrates in English first.
-  return <>{children}</>;
+  return (
+    <>
+      <LocalizedMetadata locale={locale} />
+      {children}
+    </>
+  );
 }

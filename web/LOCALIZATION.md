@@ -8,6 +8,10 @@ An explicit selection is stored using the existing client-side preference cookie
 Without a valid saved choice, the first supported browser language is used; other
 languages fall back to English. Static HTML and its initial hydration use English.
 The provider then applies the preference and updates `document.documentElement.lang`.
+React owns the localized title and description through `LocalizedMetadata`; do not
+add competing static Next metadata for those fields, which can overwrite the chosen
+language on navigation. Compact task dates and their full accessible labels use the
+selected locale while retaining the backend's Unix-seconds convention.
 No server-side rendering service, account migration, page reload, or model request
 is involved. Blocked browser storage does not prevent changing the current session's
 language. Clearing/expiring the preference restores browser-language detection.

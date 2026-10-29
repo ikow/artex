@@ -1,5 +1,6 @@
 "use client";
 import { t as uiText, getLocale } from "@/lib/i18n/core";
+import { formatUnixTimestamp } from "@/lib/i18n/format";
 import { useUILocale } from "@/lib/i18n/react";
 
 
@@ -222,13 +223,9 @@ function deleteSummary(result: DeleteTaskResult): string {
   return details.length > 0 ? uiText("任务已删除（{0}）", [details.join("，")]) : uiText("任务已删除");
 }
 
-// fmtDateTime renders a unix-seconds timestamp as a compact local date-time
-// (MM-DD HH:mm), or "—" when unset.
+// Compact local date-time in the selected interface language.
 function fmtDateTime(unix?: number): string {
-  if (!unix || unix <= 0) return "—";
-  const d = new Date(unix * 1000);
-  const p = (n: number) => String(n).padStart(2, "0");
-  return `${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+  return formatUnixTimestamp(unix, true);
 }
 
 const STATUS_OPTIONS: { value: TaskStatus; label: string }[] = [
@@ -1250,7 +1247,11 @@ const TaskRow = React.memo(function TaskRow({
           <span className="text-muted-foreground">0</span>
         )}
       </TableCell>
-      <TableCell className="text-muted-foreground text-right text-xs whitespace-nowrap tabular-nums">
+      <TableCell
+        className="text-muted-foreground text-right text-xs whitespace-nowrap tabular-nums"
+        title={formatUnixTimestamp(task.created_unix)}
+        aria-label={formatUnixTimestamp(task.created_unix)}
+      >
         {fmtDateTime(task.created_unix)}
       </TableCell>
       <TableCell className="text-right text-xs whitespace-nowrap tabular-nums">

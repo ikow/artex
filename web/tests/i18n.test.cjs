@@ -14,15 +14,26 @@ require.extensions[".ts"] = (module, filename) => {
     specifier.startsWith("@/") ? path.join(src, specifier.slice(2)) : specifier,
   );
   const output = ts.transpileModule(fs.readFileSync(filename, "utf8"), {
-    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, esModuleInterop: true },
+    compilerOptions: {
+      module: ts.ModuleKind.CommonJS,
+      target: ts.ScriptTarget.ES2022,
+      esModuleInterop: true,
+      jsx: ts.JsxEmit.ReactJSX,
+    },
   });
   module._compile(output.outputText, filename);
 };
+require.extensions[".tsx"] = require.extensions[".ts"];
 
 const { english, chinese } = require("../src/lib/i18n/catalog.ts");
 const { resolveLocale, isLocale, setLocale, getLocale, subscribeLocale, translate, t } =
   require("../src/lib/i18n/core.ts");
 const { statusMeta } = require("../src/lib/status.ts");
+const { formatUnixTimestamp } = require("../src/lib/i18n/format.ts");
+const { LocalizedMetadata } = require("../src/lib/i18n/metadata.tsx");
+const { localizedAppMetadata } = require("../src/config/app-config.ts");
+const React = require("react");
+const { renderToStaticMarkup } = require("react-dom/server");
 const placeholders = (value) => (value.match(/\{\d+\}/g) ?? []).sort();
 
 test.afterEach(() => setLocale("en"));
@@ -98,6 +109,48 @@ test("imported status metadata follows language changes without changing identif
   assert.equal(t("取消"), "取消");
   setLocale("en");
   assert.equal(t("取消"), "Cancel");
+});
+
+test("compact task dates and their full accessible labels follow the selected locale", () => {
+  const unix = Date.parse("2026-07-25T12:00:00Z") / 1000;
+  setLocale("en");
+  const en = formatUnixTimestamp(unix, true);
+  assert.match(en, /Jul/);
+  assert.match(formatUnixTimestamp(unix), /2026/);
+  setLocale("zh-CN");
+  const zh = formatUnixTimestamp(unix, true);
+  assert.match(zh, /月/);
+  assert.notEqual(en, zh);
+  for (const value of [undefined, 0, -1, NaN, Infinity, 1e20]) {
+    assert.equal(formatUnixTimestamp(value, true), "—");
+  }
+});
+
+test("one React metadata owner renders localized static titles and descriptions", () => {
+  for (const locale of ["en", "zh-CN"]) {
+    const expected = localizedAppMetadata(locale);
+    const html = renderToStaticMarkup(
+      React.createElement("div", null, React.createElement(LocalizedMetadata, { locale })),
+    );
+    assert.equal((html.match(/<title>/g) ?? []).length, 1);
+    assert.ok(html.startsWith(`<title>${expected.title}</title>`), "React hoists the localized title");
+    assert.ok(html.includes(`name="description" content="${expected.description}"`));
+  }
+  assert.notEqual(localizedAppMetadata("en").title, localizedAppMetadata("zh-CN").title);
+  const layout = ts.createSourceFile(
+    "layout.tsx", fs.readFileSync(path.join(src, "app/layout.tsx"), "utf8"), ts.ScriptTarget.Latest, true,
+  );
+  function checkMetadata(node) {
+    if (ts.isVariableDeclaration(node) && node.name.getText(layout) === "metadata" &&
+        node.initializer && ts.isObjectLiteralExpression(node.initializer)) {
+      assert.ok(
+        !node.initializer.properties.some((p) => ["title", "description"].includes(p.name?.getText(layout))),
+        "Next route metadata must not overwrite the shared locale-aware head elements",
+      );
+    }
+    ts.forEachChild(node, checkMetadata);
+  }
+  checkMetadata(layout);
 });
 
 test("all explicit source messages and interpolations have catalog entries", () => {
