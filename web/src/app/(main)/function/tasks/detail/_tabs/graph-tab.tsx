@@ -1,4 +1,6 @@
 "use client";
+import { useUILocale } from "@/lib/i18n/react";
+
 
 import * as React from "react";
 
@@ -8,6 +10,9 @@ import { api } from "@/lib/api";
 import type { Edge, TaskNode } from "@/lib/types";
 
 export function GraphTab({ taskId }: { taskId: string }) {
+  "use no memo";
+  const uiLocale = useUILocale();
+
   const [nodes, setNodes] = React.useState<TaskNode[]>([]);
   const [edges, setEdges] = React.useState<Edge[]>([]);
   // 上一次图数据的签名:轮询拿到相同数据时跳过 setState,避免整图无谓重建(拖动时

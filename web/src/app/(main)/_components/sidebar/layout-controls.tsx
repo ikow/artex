@@ -1,4 +1,7 @@
 "use client";
+import { useUILocale } from "@/lib/i18n/react";
+import { t as uiText } from "@/lib/i18n/core";
+
 
 import { Settings } from "lucide-react";
 
@@ -23,6 +26,9 @@ import { applyThemePreset } from "@/lib/preferences/theme-utils";
 import { usePreferencesStore } from "@/stores/preferences/preferences-provider";
 
 export function LayoutControls() {
+  "use no memo";
+  const uiLocale = useUILocale();
+
   const themeMode = usePreferencesStore((s) => s.themeMode);
   const resolvedThemeMode = usePreferencesStore((s) => s.resolvedThemeMode);
   const setThemeMode = usePreferencesStore((s) => s.setThemeMode);
@@ -99,22 +105,22 @@ export function LayoutControls() {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button size="icon">
+        <Button size="icon" aria-label={uiText("偏好设置")}>
           <Settings />
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end">
         <div className="flex flex-col gap-5">
           <div className="space-y-1.5">
-            <h4 className="font-medium text-sm leading-none">Preferences</h4>
-            <p className="text-muted-foreground text-xs">Customize your dashboard layout preferences.</p>
+            <h4 className="font-medium text-sm leading-none">{uiText("偏好设置")}</h4>
+            <p className="text-muted-foreground text-xs">{uiText("自定义控制台布局偏好。")}</p>
           </div>
           <div className="space-y-3 **:data-[slot=toggle-group]:w-full **:data-[slot=toggle-group-item]:flex-1 **:data-[slot=toggle-group-item]:text-xs">
             <div className="space-y-1">
-              <Label className="font-medium text-xs">Theme Preset</Label>
+              <Label className="font-medium text-xs">{uiText("主题预设")}</Label>
               <Select value={themePreset} onValueChange={onThemePresetChange}>
                 <SelectTrigger size="sm" className="w-full text-xs">
-                  <SelectValue placeholder="Preset" />
+                  <SelectValue placeholder={uiText("选择预设")} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
@@ -136,10 +142,10 @@ export function LayoutControls() {
             </div>
 
             <div className="space-y-1">
-              <Label className="font-medium text-xs">Fonts</Label>
+              <Label className="font-medium text-xs">{uiText("字体")}</Label>
               <Select value={font} onValueChange={onFontChange}>
                 <SelectTrigger size="sm" className="w-full text-xs">
-                  <SelectValue placeholder="Select font" />
+                  <SelectValue placeholder={uiText("选择字体")} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
@@ -154,7 +160,7 @@ export function LayoutControls() {
             </div>
 
             <div className="space-y-1">
-              <Label className="font-medium text-xs">Theme Mode</Label>
+              <Label className="font-medium text-xs">{uiText("主题模式")}</Label>
               <ToggleGroup
                 size="sm"
                 spacing={0}
@@ -163,20 +169,20 @@ export function LayoutControls() {
                 value={themeMode}
                 onValueChange={onThemeModeChange}
               >
-                <ToggleGroupItem value="light" aria-label="Toggle light">
-                  Light
+                <ToggleGroupItem value="light" aria-label={uiText("浅色")}>
+                  {uiText("浅色")}
                 </ToggleGroupItem>
-                <ToggleGroupItem value="dark" aria-label="Toggle dark">
-                  Dark
+                <ToggleGroupItem value="dark" aria-label={uiText("深色")}>
+                  {uiText("深色")}
                 </ToggleGroupItem>
-                <ToggleGroupItem value="system" aria-label="Toggle system">
-                  System
+                <ToggleGroupItem value="system" aria-label={uiText("跟随系统")}>
+                  {uiText("跟随系统")}
                 </ToggleGroupItem>
               </ToggleGroup>
             </div>
 
             <div className="space-y-1">
-              <Label className="font-medium text-xs">Page Layout</Label>
+              <Label className="font-medium text-xs">{uiText("页面布局")}</Label>
               <ToggleGroup
                 size="sm"
                 spacing={0}
@@ -185,17 +191,17 @@ export function LayoutControls() {
                 value={contentLayout}
                 onValueChange={onContentLayoutChange}
               >
-                <ToggleGroupItem value="centered" aria-label="Toggle centered">
-                  Centered
+                <ToggleGroupItem value="centered" aria-label={uiText("居中")}>
+                  {uiText("居中")}
                 </ToggleGroupItem>
-                <ToggleGroupItem value="full-width" aria-label="Toggle full-width">
-                  Full Width
+                <ToggleGroupItem value="full-width" aria-label={uiText("全宽")}>
+                  {uiText("全宽")}
                 </ToggleGroupItem>
               </ToggleGroup>
             </div>
 
             <div className="space-y-1">
-              <Label className="font-medium text-xs">Navbar Behavior</Label>
+              <Label className="font-medium text-xs">{uiText("导航栏行为")}</Label>
               <ToggleGroup
                 size="sm"
                 spacing={0}
@@ -204,17 +210,17 @@ export function LayoutControls() {
                 value={navbarStyle}
                 onValueChange={onNavbarStyleChange}
               >
-                <ToggleGroupItem value="sticky" aria-label="Toggle sticky">
-                  Sticky
+                <ToggleGroupItem value="sticky" aria-label={uiText("固定")}>
+                  {uiText("固定")}
                 </ToggleGroupItem>
-                <ToggleGroupItem value="scroll" aria-label="Toggle scroll">
-                  Scroll
+                <ToggleGroupItem value="scroll" aria-label={uiText("随页面滚动")}>
+                  {uiText("随页面滚动")}
                 </ToggleGroupItem>
               </ToggleGroup>
             </div>
 
             <div className="space-y-1">
-              <Label className="font-medium text-xs">Sidebar Style</Label>
+              <Label className="font-medium text-xs">{uiText("侧边栏样式")}</Label>
               <ToggleGroup
                 size="sm"
                 spacing={0}
@@ -223,20 +229,20 @@ export function LayoutControls() {
                 value={variant}
                 onValueChange={onSidebarStyleChange}
               >
-                <ToggleGroupItem value="inset" aria-label="Toggle inset">
-                  Inset
+                <ToggleGroupItem value="inset" aria-label={uiText("内嵌")}>
+                  {uiText("内嵌")}
                 </ToggleGroupItem>
-                <ToggleGroupItem value="sidebar" aria-label="Toggle sidebar">
-                  Sidebar
+                <ToggleGroupItem value="sidebar" aria-label={uiText("标准侧边栏")}>
+                  {uiText("标准侧边栏")}
                 </ToggleGroupItem>
-                <ToggleGroupItem value="floating" aria-label="Toggle floating">
-                  Floating
+                <ToggleGroupItem value="floating" aria-label={uiText("悬浮")}>
+                  {uiText("悬浮")}
                 </ToggleGroupItem>
               </ToggleGroup>
             </div>
 
             <div className="space-y-1">
-              <Label className="font-medium text-xs">Sidebar Collapse Mode</Label>
+              <Label className="font-medium text-xs">{uiText("侧边栏折叠模式")}</Label>
               <ToggleGroup
                 size="sm"
                 spacing={0}
@@ -245,17 +251,17 @@ export function LayoutControls() {
                 value={collapsible}
                 onValueChange={onSidebarCollapseModeChange}
               >
-                <ToggleGroupItem value="icon" aria-label="Toggle icon">
-                  Icon
+                <ToggleGroupItem value="icon" aria-label={uiText("图标")}>
+                  {uiText("图标")}
                 </ToggleGroupItem>
-                <ToggleGroupItem value="offcanvas" aria-label="Toggle offcanvas">
-                  OffCanvas
+                <ToggleGroupItem value="offcanvas" aria-label={uiText("隐藏")}>
+                  {uiText("隐藏")}
                 </ToggleGroupItem>
               </ToggleGroup>
             </div>
 
             <Button type="button" size="sm" variant="outline" className="w-full text-xs" onClick={handleRestore}>
-              Restore Defaults
+              {uiText("重置偏好设置")}
             </Button>
           </div>
         </div>

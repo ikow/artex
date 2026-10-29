@@ -1,4 +1,7 @@
 "use client";
+import { t as uiText } from "@/lib/i18n/core";
+import { useUILocale } from "@/lib/i18n/react";
+
 
 import * as React from "react";
 
@@ -23,12 +26,15 @@ type CopyButtonProps = {
 // 下自动降级(见 copyText)。
 export function CopyButton({
   text,
-  successMessage = "已复制",
-  label = "复制",
+  successMessage = uiText("已复制"),
+  label = uiText("复制"),
   size = "sm",
   variant = "outline",
   className,
 }: CopyButtonProps) {
+  "use no memo";
+  const uiLocale = useUILocale();
+
   const [copied, setCopied] = React.useState(false);
   const timer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -47,7 +53,7 @@ export function CopyButton({
       if (timer.current) clearTimeout(timer.current);
       timer.current = setTimeout(() => setCopied(false), 1500);
     } else {
-      toast.error("复制失败，请手动选择文本复制");
+      toast.error(uiText("复制失败，请手动选择文本复制"));
     }
   }
 

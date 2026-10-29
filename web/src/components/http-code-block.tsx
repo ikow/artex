@@ -1,4 +1,7 @@
 "use client";
+import { t as uiText } from "@/lib/i18n/core";
+import { useUILocale } from "@/lib/i18n/react";
+
 import * as React from "react";
 
 import { CheckIcon, CopyIcon, WrapTextIcon } from "lucide-react";
@@ -17,6 +20,9 @@ function statusTone(status: number) {
 }
 
 function StartLine({ line }: { line: string }) {
+  "use no memo";
+  const uiLocale = useUILocale();
+
   const response = /^(HTTP\/\S+)(\s+)(\d{3})(.*)$/.exec(line);
   if (response) {
     return (
@@ -46,6 +52,9 @@ function StartLine({ line }: { line: string }) {
 }
 
 function HeaderLine({ line }: { line: string }) {
+  "use no memo";
+  const uiLocale = useUILocale();
+
   const separator = line.indexOf(":");
   if (separator <= 0) return line;
   return (
@@ -58,6 +67,9 @@ function HeaderLine({ line }: { line: string }) {
 }
 
 function JsonBody({ body }: { body: string }) {
+  "use no memo";
+  const uiLocale = useUILocale();
+
   const parts: React.ReactNode[] = [];
   const tokens = /("(?:\\.|[^"\\])*")(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?/g;
   let cursor = 0;
@@ -79,6 +91,9 @@ function JsonBody({ body }: { body: string }) {
 }
 
 function MarkupBody({ body }: { body: string }) {
+  "use no memo";
+  const uiLocale = useUILocale();
+
   const parts: React.ReactNode[] = [];
   const tags = /<\/?[A-Za-z][^>]*>|<!--[\s\S]*?-->/g;
   let cursor = 0;
@@ -106,15 +121,21 @@ function detectBodyFormat(body: string): BodyFormat {
 }
 
 function HighlightedBody({ body, format }: { body: string; format: BodyFormat }) {
+  "use no memo";
+  const uiLocale = useUILocale();
+
   if (format === "json") return <JsonBody body={body} />;
   if (format === "markup") return <MarkupBody body={body} />;
   return body;
 }
 
 export function HttpCodeBlock({ raw }: { raw: string }) {
+  "use no memo";
+  const uiLocale = useUILocale();
+
   const [wrapLines, setWrapLines] = React.useState(true);
   const [copied, setCopied] = React.useState(false);
-  const value = raw || "（空）";
+  const value = raw || uiText("（空）");
   const lines = value.replaceAll("\r\n", "\n").split("\n");
   const separator = lines.indexOf("");
   const body = separator >= 0 ? lines.slice(separator + 1).join("\n") : "";
@@ -132,7 +153,7 @@ export function HttpCodeBlock({ raw }: { raw: string }) {
       setCopied(true);
       return;
     }
-    toast.error("复制失败，请使用 Ctrl/Cmd+A 后复制");
+    toast.error(uiText("复制失败，请使用 Ctrl/Cmd+A 后复制"));
   };
 
   const renderLine = (line: string, index: number) => {
@@ -151,14 +172,14 @@ export function HttpCodeBlock({ raw }: { raw: string }) {
               type="button"
               variant="ghost"
               size="icon-xs"
-              aria-label={wrapLines ? "关闭自动换行" : "开启自动换行"}
+              aria-label={wrapLines ? uiText("关闭自动换行") : uiText("开启自动换行")}
               aria-pressed={wrapLines}
               onClick={() => setWrapLines((current) => !current)}
             >
               <WrapTextIcon />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="bottom">{wrapLines ? "关闭自动换行" : "开启自动换行"}</TooltipContent>
+          <TooltipContent side="bottom">{wrapLines ? uiText("关闭自动换行") : uiText("开启自动换行")}</TooltipContent>
         </Tooltip>
         <Tooltip>
           <TooltipTrigger asChild>
@@ -166,19 +187,19 @@ export function HttpCodeBlock({ raw }: { raw: string }) {
               type="button"
               variant="ghost"
               size="icon-xs"
-              aria-label={copied ? "已复制报文" : "复制报文"}
+              aria-label={copied ? uiText("已复制报文") : uiText("复制报文")}
               onClick={() => void copyPacket()}
             >
               {copied ? <CheckIcon /> : <CopyIcon />}
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="bottom">{copied ? "已复制" : "复制报文"}</TooltipContent>
+          <TooltipContent side="bottom">{copied ? uiText("已复制") : uiText("复制报文")}</TooltipContent>
         </Tooltip>
       </div>
       {/* biome-ignore lint/a11y/useSemanticElements: textarea cannot preserve line numbers and syntax-highlighting markup. */}
       <div
         role="textbox"
-        aria-label="HTTP 报文代码"
+        aria-label={uiText("HTTP 报文代码")}
         aria-multiline="true"
         aria-readonly="true"
         tabIndex={0}

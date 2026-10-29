@@ -1,4 +1,6 @@
 "use client";
+import { useUILocale } from "@/lib/i18n/react";
+
 
 import * as React from "react";
 
@@ -14,6 +16,9 @@ import { Button } from "@/components/ui/button";
 // /system/agents; this page reuses the same AgentEditor component full-width so a
 // direct URL (or an external link) still opens the editor.
 function AgentDetailInner() {
+  "use no memo";
+  const uiLocale = useUILocale();
+
   const searchParams = useSearchParams();
   const key = searchParams.get("key") ?? "";
 
@@ -39,6 +44,9 @@ function AgentDetailInner() {
 
 // useSearchParams must sit under a Suspense boundary for static export.
 export default function AgentDetailPage() {
+  "use no memo";
+  const uiLocale = useUILocale();
+
   return (
     <React.Suspense fallback={null}>
       <AgentDetailInner />

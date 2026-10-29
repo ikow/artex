@@ -1,4 +1,6 @@
 "use client";
+import { useUILocale } from "@/lib/i18n/react";
+
 
 import type * as React from "react";
 
@@ -22,6 +24,9 @@ export function NavSecondary({
     icon: LucideIcon;
   }[];
 } & React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
+  "use no memo";
+  const uiLocale = useUILocale();
+
   return (
     <SidebarGroup {...props}>
       <SidebarGroupContent>

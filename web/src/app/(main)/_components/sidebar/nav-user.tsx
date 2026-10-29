@@ -1,4 +1,7 @@
 "use client";
+import { t as uiText } from "@/lib/i18n/core";
+import { useUILocale } from "@/lib/i18n/react";
+
 
 import * as React from "react";
 
@@ -28,6 +31,9 @@ export function NavUser({
     readonly avatar: string;
   };
 }) {
+  "use no memo";
+  const uiLocale = useUILocale();
+
   const { isMobile } = useSidebar();
   const [pwOpen, setPwOpen] = React.useState(false);
 
@@ -79,13 +85,11 @@ export function NavUser({
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => setPwOpen(true)}>
               <KeyRound />
-              修改密码
-            </DropdownMenuItem>
+              {uiText("修改密码")}</DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
               <LogOut />
-              退出登录
-            </DropdownMenuItem>
+              {uiText("退出登录")}</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>

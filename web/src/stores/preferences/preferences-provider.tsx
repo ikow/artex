@@ -1,4 +1,6 @@
 "use client";
+import { useUILocale } from "@/lib/i18n/react";
+
 
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 
@@ -58,6 +60,9 @@ export const PreferencesStoreProvider = ({
   contentLayout: PreferencesState["contentLayout"];
   navbarStyle: PreferencesState["navbarStyle"];
 }) => {
+  "use no memo";
+  const uiLocale = useUILocale();
+
   const [store] = useState<StoreApi<PreferencesState>>(() =>
     createPreferencesStore({
       themeMode,

@@ -1,3 +1,6 @@
+"use client";
+
+import { useUILocale } from "@/lib/i18n/react";
 import FullCalendar, { type CalendarOptions, type DayCellInfo } from '@fullcalendar/react'
 import '@fullcalendar/react/skeleton.css'
 import { cn } from '@/lib/utils'
@@ -79,6 +82,9 @@ export function EventCalendarViews({
   views: userViews,
   ...restOptions
 }: EventCalendarViewProps) {
+  "use no memo";
+  const uiLocale = useUILocale();
+
   return (
     <FullCalendar
       height={height}

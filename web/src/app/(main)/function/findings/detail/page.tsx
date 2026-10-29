@@ -1,4 +1,7 @@
 "use client";
+import { t as uiText, getLocale } from "@/lib/i18n/core";
+import { useUILocale } from "@/lib/i18n/react";
+
 
 import * as React from "react";
 
@@ -41,11 +44,14 @@ const FINDING_STATUSES: FindingStatus[] = [
 ];
 
 function fmtTime(ts: string) {
-  return new Date(ts).toLocaleString("zh-CN");
+  return new Date(ts).toLocaleString(getLocale());
 }
 
 // FieldRow is one label/value line in the right-hand status panel.
 function FieldRow({ label, children }: { label: string; children: React.ReactNode }) {
+  "use no memo";
+  const uiLocale = useUILocale();
+
   return (
     <div className="flex items-start justify-between gap-3 py-2.5">
       <span className="shrink-0 pt-0.5 text-xs text-muted-foreground">{label}</span>
@@ -55,6 +61,9 @@ function FieldRow({ label, children }: { label: string; children: React.ReactNod
 }
 
 function FindingDetailInner() {
+  "use no memo";
+  const uiLocale = useUILocale();
+
   const searchParams = useSearchParams();
   const id = searchParams.get("id") ?? "";
   const contextTaskId = searchParams.get("context_task") ?? "";
@@ -85,10 +94,10 @@ function FindingDetailInner() {
       try {
         const updated = await api.setFindingSeverity(id, next);
         setFinding(updated);
-        toast.success(`严重等级已改为「${statusMeta("severity", next).label}」`);
+        toast.success(uiText("严重等级已改为「{0}」", [statusMeta("severity", next).label]));
       } catch (e) {
         setFinding((cur) => (cur ? { ...cur, severity: prev } : cur));
-        toast.error("更新失败：" + (e as Error).message);
+        toast.error(uiText("更新失败：") + (e as Error).message);
       }
     },
     [finding, id],
@@ -102,10 +111,10 @@ function FindingDetailInner() {
       try {
         const updated = await api.setFindingStatus(id, next);
         setFinding(updated);
-        toast.success(`处理状态已改为「${statusMeta("finding", next).label}」`);
+        toast.success(uiText("处理状态已改为「{0}」", [statusMeta("finding", next).label]));
       } catch (e) {
         setFinding((cur) => (cur ? { ...cur, status: prev } : cur));
-        toast.error("更新失败：" + (e as Error).message);
+        toast.error(uiText("更新失败：") + (e as Error).message);
       }
     },
     [finding, id],
@@ -114,19 +123,18 @@ function FindingDetailInner() {
   if (!finding) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-3 p-10 text-center">
-        <p className="text-muted-foreground">{loaded ? `未找到发现 ${id}` : "加载中…"}</p>
+        <p className="text-muted-foreground">{loaded ? uiText("未找到发现 {0}", [id]) : uiText("加载中…")}</p>
         {loaded && (
           <Button asChild variant="outline">
             <Link href="/function/findings">
-              <ArrowLeftIcon /> 返回发现列表
-            </Link>
+              <ArrowLeftIcon /> {uiText(" 返回发现列表")}</Link>
           </Button>
         )}
       </div>
     );
   }
 
-  const title = finding.name || finding.vulnclass || "未分类";
+  const title = finding.name || finding.vulnclass || uiText("未分类");
 
   return (
     <Tabs value={tab} onValueChange={setTab} className="flex flex-1 flex-col gap-0">
@@ -148,12 +156,12 @@ function FindingDetailInner() {
           <StatusBadge domain="severity" value={finding.severity} dot />
           <StatusBadge domain="finding" value={finding.status} dot />
           {finding.inherited && finding.source_task_id && (
-            <Badge variant="outline">来源任务 #{finding.source_task_id} · 只读</Badge>
+            <Badge variant="outline">{uiText("来源任务 #{0} · 只读", [finding.source_task_id])}</Badge>
           )}
         </div>
         <TabsList>
-          <TabsTrigger value="overview">概览</TabsTrigger>
-          <TabsTrigger value="lineage">链路图</TabsTrigger>
+          <TabsTrigger value="overview">{uiText("概览")}</TabsTrigger>
+          <TabsTrigger value="lineage">{uiText("链路图")}</TabsTrigger>
         </TabsList>
       </header>
 
@@ -166,16 +174,16 @@ function FindingDetailInner() {
             <div className="flex flex-col gap-4 lg:col-span-2">
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-sm">摘要</CardTitle>
+                  <CardTitle className="text-sm">{uiText("摘要")}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{finding.summary || "（无摘要）"}</p>
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{finding.summary || uiText("（无摘要）")}</p>
                 </CardContent>
               </Card>
               <FindingRetestPanel key={id} findingId={id} readOnly={finding.inherited} onCompleted={load} />
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-sm">证据 / PoC</CardTitle>
+                  <CardTitle className="text-sm">{uiText("证据 / PoC")}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {finding.evidence ? (
@@ -183,7 +191,7 @@ function FindingDetailInner() {
                       {finding.evidence}
                     </pre>
                   ) : (
-                    <p className="text-sm text-muted-foreground">（无证据）</p>
+                    <p className="text-sm text-muted-foreground">{uiText("（无证据）")}</p>
                   )}
                 </CardContent>
               </Card>
@@ -197,19 +205,19 @@ function FindingDetailInner() {
               {/* 证据下方：详细报告(Markdown 渲染) */}
               <Card>
                 <CardHeader className="flex-row items-center justify-between">
-                  <CardTitle className="text-sm">详细报告</CardTitle>
-                  {finding.report && <CopyButton text={finding.report} successMessage="已复制详细报告" />}
+                  <CardTitle className="text-sm">{uiText("详细报告")}</CardTitle>
+                  {finding.report && <CopyButton text={finding.report} successMessage={uiText("已复制详细报告")} />}
                 </CardHeader>
                 <CardContent>
                   {finding.report_stale ? (
                     <Alert>
-                      <AlertDescription>流量证据已变更，详细报告待更新。</AlertDescription>
+                      <AlertDescription>{uiText("流量证据已变更，详细报告待更新。")}</AlertDescription>
                     </Alert>
                   ) : null}
                   {finding.report ? (
                     <Markdown text={finding.report} />
                   ) : (
-                    <p className="text-sm text-muted-foreground">暂无详细报告。</p>
+                    <p className="text-sm text-muted-foreground">{uiText("暂无详细报告。")}</p>
                   )}
                 </CardContent>
               </Card>
@@ -218,18 +226,18 @@ function FindingDetailInner() {
             {/* 右栏：状态区 */}
             <Card className="h-fit lg:sticky lg:top-24">
               <CardHeader>
-                <CardTitle className="text-sm">状态</CardTitle>
+                <CardTitle className="text-sm">{uiText("状态")}</CardTitle>
               </CardHeader>
               <CardContent className="divide-y">
                 {/* 漏洞 ID */}
-                <FieldRow label="漏洞 ID">
+                <FieldRow label={uiText("漏洞 ID")}>
                   <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground">
                     #{finding.id}
                   </code>
                 </FieldRow>
 
                 {/* 严重等级 */}
-                <FieldRow label="严重等级">
+                <FieldRow label={uiText("严重等级")}>
                   {finding.inherited ? (
                     <StatusBadge domain="severity" value={finding.severity} dot />
                   ) : (
@@ -251,7 +259,7 @@ function FindingDetailInner() {
                 </FieldRow>
 
                 {/* 处理状态 */}
-                <FieldRow label="处理状态">
+                <FieldRow label={uiText("处理状态")}>
                   {finding.inherited ? (
                     <StatusBadge domain="finding" value={finding.status} dot />
                   ) : (
@@ -273,7 +281,7 @@ function FindingDetailInner() {
                 </FieldRow>
 
                 {/* 漏洞类型 */}
-                <FieldRow label="漏洞类型">
+                <FieldRow label={uiText("漏洞类型")}>
                   {finding.vulnclass ? (
                     <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">{finding.vulnclass}</code>
                   ) : (
@@ -282,7 +290,7 @@ function FindingDetailInner() {
                 </FieldRow>
 
                 {/* 涉及资产 */}
-                <FieldRow label="涉及资产">
+                <FieldRow label={uiText("涉及资产")}>
                   {finding.assets && finding.assets.length > 0 ? (
                     <div className="flex flex-wrap justify-end gap-1">
                       {finding.assets.map((a) => (
@@ -301,7 +309,7 @@ function FindingDetailInner() {
                 </FieldRow>
 
                 {/* 所属任务 */}
-                <FieldRow label="所属任务">
+                <FieldRow label={uiText("所属任务")}>
                   {finding.task_id ? (
                     <Link
                       href={`/function/tasks/detail?id=${finding.task_id}`}
@@ -312,12 +320,12 @@ function FindingDetailInner() {
                       <ArrowUpRightIcon className="size-3 shrink-0" />
                     </Link>
                   ) : (
-                    <span className="text-muted-foreground">—（任务已删除）</span>
+                    <span className="text-muted-foreground">{uiText("—（任务已删除）")}</span>
                   )}
                 </FieldRow>
 
                 {/* 发现时间 */}
-                <FieldRow label="发现时间">
+                <FieldRow label={uiText("发现时间")}>
                   <span className="tabular-nums">{fmtTime(finding.ts)}</span>
                 </FieldRow>
               </CardContent>
@@ -336,6 +344,9 @@ function FindingDetailInner() {
 
 // useSearchParams must sit under a Suspense boundary for static export.
 export default function FindingDetailPage() {
+  "use no memo";
+  const uiLocale = useUILocale();
+
   return (
     <React.Suspense fallback={null}>
       <FindingDetailInner />

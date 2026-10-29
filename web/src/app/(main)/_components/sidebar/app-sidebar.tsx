@@ -1,4 +1,6 @@
 "use client";
+import { useUILocale } from "@/lib/i18n/react";
+
 
 import Link from "next/link";
 
@@ -14,6 +16,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { APP_CONFIG } from "@/config/app-config";
+import { LanguageSwitcher } from "@/components/language-switcher";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { sidebarItems } from "@/navigation/sidebar/sidebar-items";
 import { usePreferencesStore } from "@/stores/preferences/preferences-provider";
@@ -24,6 +27,9 @@ import { SidebarSupportCard } from "./sidebar-support-card";
 
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  "use no memo";
+  const uiLocale = useUILocale();
+
   const currentUser = useCurrentUser();
   const { sidebarVariant, sidebarCollapsible, isSynced } = usePreferencesStore(
     useShallow((s) => ({
@@ -57,6 +63,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         {/* <NavSecondary items={data.navSecondary} className="mt-auto" /> */}
       </SidebarContent>
       <SidebarFooter>
+        <div className="flex justify-start"><LanguageSwitcher compact /></div>
         <NavUser user={currentUser} />
       </SidebarFooter>
     </Sidebar>

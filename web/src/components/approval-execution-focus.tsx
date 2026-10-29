@@ -1,4 +1,7 @@
 "use client";
+import { t as uiText } from "@/lib/i18n/core";
+import { useUILocale } from "@/lib/i18n/react";
+
 
 import * as React from "react";
 import { Button } from "@/components/ui/button";
@@ -34,12 +37,12 @@ export function useApprovalFocus({ taskId, conversationId }: { taskId?: string; 
             ? source.conversation_id !== conversationId
             : source.task_id !== taskId || source.conversation_id != null
         ) {
-          throw new Error("审批来源与当前会话不一致");
+          throw new Error(uiText("审批来源与当前会话不一致"));
         }
         setState({ id, source, loading: false });
       })
       .catch((e) => {
-        if (!cancelled) setState({ id, error: (e as Error).message || "无法定位原始执行", loading: false });
+        if (!cancelled) setState({ id, error: (e as Error).message || uiText("无法定位原始执行"), loading: false });
       });
     return () => {
       cancelled = true;
@@ -78,13 +81,13 @@ export function useApprovalHistory(
         const page = await loadPage(before);
         if (cancelled) return;
         if (!page.items.length || (before > 0 && page.items[0].seq >= before)) {
-          throw new Error("会话中未找到对应工具调用，记录可能已删除");
+          throw new Error(uiText("会话中未找到对应工具调用，记录可能已删除"));
         }
         mergePage(page);
         current = page.items;
         before = current[0].seq;
         if (!page.hasMore && !current.some((a) => a.seq === source.seq)) {
-          throw new Error("会话中未找到对应工具调用");
+          throw new Error(uiText("会话中未找到对应工具调用"));
         }
       }
       if (!cancelled) setResult({ source });
@@ -108,6 +111,9 @@ export function ApprovalExecutionFocus({
   focus: ReturnType<typeof useApprovalFocus>;
   history: ReturnType<typeof useApprovalHistory>;
 }) {
+  "use no memo";
+  const uiLocale = useUILocale();
+
   const { state } = focus;
   if (!state) return null;
   const error = state.error || history.error;
@@ -118,20 +124,18 @@ export function ApprovalExecutionFocus({
     >
       <span className={error ? "text-destructive" : "text-muted-foreground"}>
         {error
-          ? `无法定位：${error}`
+          ? uiText("无法定位：{0}", [error])
           : history.ready
-            ? `已展开审批 #${state.id} 对应的工具调用`
-            : `正在加载审批 #${state.id} 所在的对话位置…`}
+            ? uiText("已展开审批 #{0} 对应的工具调用", [state.id])
+            : uiText("正在加载审批 #{0} 所在的对话位置…", [state.id])}
       </span>
       <div className="flex gap-2">
         {error ? (
           <Button size="sm" variant="outline" onClick={focus.retry}>
-            重试定位
-          </Button>
+            {uiText("重试定位")}</Button>
         ) : null}
         <Button size="sm" variant="ghost" onClick={focus.close}>
-          取消定位
-        </Button>
+          {uiText("取消定位")}</Button>
       </div>
     </div>
   );

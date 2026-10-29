@@ -1,4 +1,7 @@
 "use client";
+import { t as uiText, getLocale } from "@/lib/i18n/core";
+import { useUILocale } from "@/lib/i18n/react";
+
 
 import * as React from "react";
 
@@ -28,10 +31,10 @@ import { api } from "@/lib/api";
 import type { FindingTraffic, FindingTrafficBinding, TrafficEvidenceRole } from "@/lib/types";
 
 const ROLES: Record<TrafficEvidenceRole, string> = {
-  baseline: "正常对照",
-  proof: "漏洞证明",
-  verification: "补充验证",
-  supporting: "辅助证据",
+  get baseline() { return uiText("正常对照"); },
+  get proof() { return uiText("漏洞证明"); },
+  get verification() { return uiText("补充验证"); },
+  get supporting() { return uiText("辅助证据"); },
 };
 
 export function FindingTrafficPanel({
@@ -45,6 +48,9 @@ export function FindingTrafficPanel({
   readOnly?: boolean;
   onChanged: () => void;
 }) {
+  "use no memo";
+  const uiLocale = useUILocale();
+
   const [data, setData] = React.useState<FindingTraffic | null>(null);
   const [error, setError] = React.useState("");
   const [adding, setAdding] = React.useState(false);
@@ -78,7 +84,7 @@ export function FindingTrafficPanel({
       setData(await action());
       setEditing(null);
       onChanged();
-      toast.success("流量证据已更新");
+      toast.success(uiText("流量证据已更新"));
     } catch (e) {
       toast.error((e as Error).message);
       setReload((n) => n + 1);
@@ -99,17 +105,16 @@ export function FindingTrafficPanel({
       <Card>
         <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <CardTitle>关联流量 {data ? `(${data.bindings.length})` : ""}</CardTitle>
+            <CardTitle>{uiText("关联流量 {0}", [data ? `(${data.bindings.length})` : ""])}</CardTitle>
             {!readOnly ? (
               <Button variant="outline" size="sm" disabled={!data || busy} onClick={() => setAdding(true)}>
                 <PlusIcon data-icon="inline-start" />
-                绑定流量
-              </Button>
+                {uiText("绑定流量")}</Button>
             ) : (
-              <Badge variant="outline">继承证据 · 只读</Badge>
+              <Badge variant="outline">{uiText("继承证据 · 只读")}</Badge>
             )}
           </div>
-          <CardDescription>按复现顺序组织请求与响应。清理原始流量后，已绑定证据仍然保留。</CardDescription>
+          <CardDescription>{uiText("按复现顺序组织请求与响应。清理原始流量后，已绑定证据仍然保留。")}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
           {error ? (
@@ -117,8 +122,7 @@ export function FindingTrafficPanel({
               <AlertDescription>
                 {error}
                 <Button variant="link" onClick={() => setReload((n) => n + 1)}>
-                  重试
-                </Button>
+                  {uiText("重试")}</Button>
               </AlertDescription>
             </Alert>
           ) : null}
@@ -127,8 +131,8 @@ export function FindingTrafficPanel({
           ) : data.bindings.length === 0 ? (
             <Empty>
               <EmptyHeader>
-                <EmptyTitle>暂无关联流量</EmptyTitle>
-                <EmptyDescription>可绑定正常对照、漏洞证明和补充验证请求。</EmptyDescription>
+                <EmptyTitle>{uiText("暂无关联流量")}</EmptyTitle>
+                <EmptyDescription>{uiText("可绑定正常对照、漏洞证明和补充验证请求。")}</EmptyDescription>
               </EmptyHeader>
             </Empty>
           ) : (
@@ -141,7 +145,7 @@ export function FindingTrafficPanel({
                   <Badge variant="secondary">
                     {b.snapshot.method} · {b.snapshot.status}
                   </Badge>
-                  <span className="text-xs text-muted-foreground">证据 #{b.id}</span>
+                  <span className="text-xs text-muted-foreground">{uiText("证据 #{0}", [b.id])}</span>
                 </div>
                 <Button
                   variant="link"
@@ -153,12 +157,11 @@ export function FindingTrafficPanel({
                 {b.note ? <p className="text-sm whitespace-pre-wrap">{b.note}</p> : null}
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="text-xs text-muted-foreground">
-                    {new Date(b.snapshot.captured_at * 1000).toLocaleString("zh-CN")}
+                    {new Date(b.snapshot.captured_at * 1000).toLocaleString(getLocale())}
                   </span>
                   <div className="flex flex-wrap gap-1">
                     <Button variant="outline" size="sm" onClick={() => setPreview(b.id)}>
-                      查看报文
-                    </Button>
+                      {uiText("查看报文")}</Button>
                     {!readOnly ? (
                       <>
                         <Button
@@ -171,12 +174,11 @@ export function FindingTrafficPanel({
                             setNote(b.note);
                           }}
                         >
-                          编辑说明
-                        </Button>
+                          {uiText("编辑说明")}</Button>
                         <Button
                           variant="ghost"
                           size="icon-sm"
-                          aria-label={`上移证据 ${b.id}`}
+                          aria-label={uiText("上移证据 {0}", [b.id])}
                           disabled={busy || index === 0}
                           onClick={() => move(index, -1)}
                         >
@@ -185,7 +187,7 @@ export function FindingTrafficPanel({
                         <Button
                           variant="ghost"
                           size="icon-sm"
-                          aria-label={`下移证据 ${b.id}`}
+                          aria-label={uiText("下移证据 {0}", [b.id])}
                           disabled={busy || index === data.bindings.length - 1}
                           onClick={() => move(index, 1)}
                         >
@@ -199,8 +201,7 @@ export function FindingTrafficPanel({
                             void mutate(() => api.removeFindingTraffic(findingId, b.id, data.version, contextTask))
                           }
                         >
-                          解除绑定
-                        </Button>
+                          {uiText("解除绑定")}</Button>
                       </>
                     ) : null}
                   </div>
@@ -236,12 +237,12 @@ export function FindingTrafficPanel({
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>编辑流量证据</DialogTitle>
-            <DialogDescription>说明这组请求/响应如何支持漏洞结论。</DialogDescription>
+            <DialogTitle>{uiText("编辑流量证据")}</DialogTitle>
+            <DialogDescription>{uiText("说明这组请求/响应如何支持漏洞结论。")}</DialogDescription>
           </DialogHeader>
           <FieldGroup>
             <Field>
-              <FieldLabel htmlFor="evidence-role">用途</FieldLabel>
+              <FieldLabel htmlFor="evidence-role">{uiText("用途")}</FieldLabel>
               <Select value={role} onValueChange={(v) => setRole(v as TrafficEvidenceRole)}>
                 <SelectTrigger id="evidence-role">
                   <SelectValue />
@@ -258,14 +259,13 @@ export function FindingTrafficPanel({
               </Select>
             </Field>
             <Field>
-              <FieldLabel htmlFor="evidence-note">证据说明</FieldLabel>
+              <FieldLabel htmlFor="evidence-note">{uiText("证据说明")}</FieldLabel>
               <Textarea id="evidence-note" value={note} onChange={(e) => setNote(e.target.value)} />
             </Field>
           </FieldGroup>
           <DialogFooter>
             <Button variant="outline" disabled={busy} onClick={() => setEditing(null)}>
-              取消
-            </Button>
+              {uiText("取消")}</Button>
             <Button
               disabled={busy || !editing || !data}
               onClick={() => {
@@ -275,8 +275,7 @@ export function FindingTrafficPanel({
                   );
               }}
             >
-              保存说明
-            </Button>
+              {uiText("保存说明")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

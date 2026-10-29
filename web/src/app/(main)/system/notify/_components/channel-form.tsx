@@ -1,4 +1,7 @@
 "use client";
+import { t as uiText } from "@/lib/i18n/core";
+import { useUILocale } from "@/lib/i18n/react";
+
 
 import { CheckIcon } from "lucide-react";
 
@@ -45,6 +48,9 @@ export function ConfigField({
   isSecret: boolean;
   onChange: (v: unknown) => void;
 }) {
+  "use no memo";
+  const uiLocale = useUILocale();
+
   const id = `n-cfg-${def.key}`;
   const raw = asText(value);
   // 后端回显的掩码值：形如 "__masked__:…abc123"，尾部是原值的可辨识片段。
@@ -120,8 +126,7 @@ export function ConfigField({
   const hint = masked ? (
     <p className="text-muted-foreground flex items-center gap-1 text-xs">
       <CheckIcon className="size-3" />
-      已保存{maskedTail ? `（尾号 ${maskedTail}）` : ""} · 填入新值即覆盖，清空则删除该项
-    </p>
+      {uiText("已保存{0} · 填入新值即覆盖，清空则删除该项", [maskedTail ? uiText("（尾号 {0}）", [maskedTail]) : ""])}</p>
   ) : (
     def.help && <p className="text-muted-foreground text-xs">{def.help}</p>
   );
@@ -137,17 +142,20 @@ export function ConfigField({
 
 // FilterSummary 把过滤条件摘要成一行，让卡片不用展开就能看出这个渠道推什么。
 export function FilterSummary({ filter }: { filter: NotificationFilter }) {
+  "use no memo";
+  const uiLocale = useUILocale();
+
   const parts: string[] = [];
   if (filter.min_severity) {
     parts.push(SEVERITY_OPTIONS.find((o) => o.value === filter.min_severity)?.label ?? filter.min_severity);
   }
-  if (filter.vulnclass_include?.length) parts.push(`类型含 ${filter.vulnclass_include.length} 词`);
-  if (filter.vulnclass_exclude?.length) parts.push(`排除 ${filter.vulnclass_exclude.length} 词`);
-  if (filter.task_ids?.length) parts.push(`${filter.task_ids.length} 个任务`);
-  if (filter.asset_ids?.length) parts.push(`${filter.asset_ids.length} 个资产`);
-  if (filter.on_status_change) parts.push("含状态变更");
+  if (filter.vulnclass_include?.length) parts.push(uiText("类型含 {0} 词", [filter.vulnclass_include.length]));
+  if (filter.vulnclass_exclude?.length) parts.push(uiText("排除 {0} 词", [filter.vulnclass_exclude.length]));
+  if (filter.task_ids?.length) parts.push(uiText("{0} 个任务", [filter.task_ids.length]));
+  if (filter.asset_ids?.length) parts.push(uiText("{0} 个资产", [filter.asset_ids.length]));
+  if (filter.on_status_change) parts.push(uiText("含状态变更"));
   if (parts.length === 0) {
-    return <p className="text-muted-foreground text-sm">全部漏洞</p>;
+    return <p className="text-muted-foreground text-sm">{uiText("全部漏洞")}</p>;
   }
   return <p className="text-muted-foreground text-sm">{parts.join(" · ")}</p>;
 }

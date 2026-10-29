@@ -1,4 +1,6 @@
 "use client";
+import { useUILocale } from "@/lib/i18n/react";
+
 
 import { Ellipsis, Folder, Forward, type LucideIcon, Trash2 } from "lucide-react";
 
@@ -28,6 +30,9 @@ export function NavDocuments({
     readonly icon: LucideIcon;
   }[];
 }) {
+  "use no memo";
+  const uiLocale = useUILocale();
+
   const { isMobile } = useSidebar();
 
   return (

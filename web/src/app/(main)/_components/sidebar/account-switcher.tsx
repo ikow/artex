@@ -1,4 +1,7 @@
 "use client";
+import { t as uiText } from "@/lib/i18n/core";
+import { useUILocale } from "@/lib/i18n/react";
+
 
 import { useState } from "react";
 
@@ -28,6 +31,9 @@ export function AccountSwitcher({
     readonly role: string;
   }>;
 }) {
+  "use no memo";
+  const uiLocale = useUILocale();
+
   const [activeUser, setActiveUser] = useState(users[0]);
   const [pwOpen, setPwOpen] = useState(false);
 
@@ -80,12 +86,10 @@ export function AccountSwitcher({
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => setPwOpen(true)}>
             <KeyRound />
-            修改密码
-          </DropdownMenuItem>
+            {uiText("修改密码")}</DropdownMenuItem>
           <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
             <LogOut />
-            退出登录
-          </DropdownMenuItem>
+            {uiText("退出登录")}</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
       <ChangePasswordDialog open={pwOpen} onOpenChange={setPwOpen} />

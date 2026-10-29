@@ -1,4 +1,7 @@
 "use client";
+import { t as uiText, getLocale } from "@/lib/i18n/core";
+import { useUILocale } from "@/lib/i18n/react";
+
 
 import * as React from "react";
 
@@ -25,7 +28,7 @@ const FINDING_SORT_PREFERENCE_KEY = "artex_task_findings_sort";
 function findingLabel(finding: Finding): string {
   if (finding.name?.trim()) return finding.name;
   if (finding.vulnclass?.trim()) return finding.vulnclass;
-  return "未分类";
+  return uiText("未分类");
 }
 
 const FINDING_STATUSES: FindingStatus[] = [
@@ -49,6 +52,9 @@ function Row({
   contextTaskId: string;
   onStatus: (f: Finding, next: FindingStatus) => void;
 }) {
+  "use no memo";
+  const uiLocale = useUILocale();
+
   const [open, setOpen] = React.useState(false);
   return (
     <div className="border-b last:border-b-0">
@@ -67,14 +73,13 @@ function Row({
               <span className="truncate font-medium">{findingLabel(f)}</span>
               {f.inherited && f.source_task_id && (
                 <Badge variant="outline" className="shrink-0">
-                  来源 #{f.source_task_id} · 只读
-                </Badge>
+                  {uiText("来源 #{0} · 只读", [f.source_task_id])}</Badge>
               )}
             </div>
             <span className="truncate text-xs text-muted-foreground">{f.summary}</span>
           </div>
         </button>
-        <Badge variant="outline">流量证据 {f.traffic_count ?? 0} 条</Badge>
+        <Badge variant="outline">{uiText("流量证据 {0} 条", [f.traffic_count ?? 0])}</Badge>
         {f.assets && f.assets.length > 0 && (
           <div className="hidden shrink-0 flex-wrap justify-end gap-1 sm:flex">
             {f.assets.slice(0, 2).map((a) => (
@@ -108,7 +113,7 @@ function Row({
           <StatusBadge domain="finding" value={f.status} dot />
         )}
         <span className="hidden shrink-0 text-xs text-muted-foreground md:block">
-          {new Date(f.ts).toLocaleString("zh-CN")}
+          {new Date(f.ts).toLocaleString(getLocale())}
         </span>
         {f.finding_id && (
           <Link
@@ -118,16 +123,15 @@ function Row({
                 : `/function/findings/detail?id=${f.finding_id}`
             }
             className="text-muted-foreground hover:text-primary inline-flex shrink-0 items-center gap-0.5 text-xs"
-            title="查看漏洞详情"
+            title={uiText("查看漏洞详情")}
           >
-            详情
-            <ArrowUpRightIcon className="size-3" />
+            {uiText("详情")}<ArrowUpRightIcon className="size-3" />
           </Link>
         )}
       </div>
       {open && (
         <div className="bg-muted/30 px-4 pb-4 pl-11">
-          <div className="mb-1 text-xs font-medium text-muted-foreground">证据 / PoC</div>
+          <div className="mb-1 text-xs font-medium text-muted-foreground">{uiText("证据 / PoC")}</div>
           <pre className="overflow-auto rounded-md border bg-background p-3 font-mono text-xs whitespace-pre-wrap">
             {f.evidence}
           </pre>
@@ -138,6 +142,9 @@ function Row({
 }
 
 export function FindingsTab({ taskId }: { taskId: string }) {
+  "use no memo";
+  const uiLocale = useUILocale();
+
   const [findings, setFindings] = React.useState<Finding[]>([]);
   const [sortPreference, setSortPreference] = useStoredSortPreference(
     FINDING_SORT_PREFERENCE_KEY,
@@ -172,10 +179,10 @@ export function FindingsTab({ taskId }: { taskId: string }) {
     setFindings((cur) => cur.map((x) => (x.id === f.id ? { ...x, status: next } : x)));
     try {
       await api.setFindingStatus(f.finding_id, next);
-      toast.success(`已标记为「${statusMeta("finding", next).label}」`);
+      toast.success(uiText("已标记为「{0}」", [statusMeta("finding", next).label]));
     } catch (e) {
       setFindings((cur) => cur.map((x) => (x.id === f.id ? { ...x, status: prev } : x)));
-      toast.error("更新失败：" + (e as Error).message);
+      toast.error(uiText("更新失败：") + (e as Error).message);
     }
   }, []);
 
@@ -191,11 +198,11 @@ export function FindingsTab({ taskId }: { taskId: string }) {
     <Card className="overflow-hidden py-0">
       <CardContent className="px-0">
         <div className="flex items-center border-b px-4 py-2 text-xs text-muted-foreground">
-          <span className="min-w-0 flex-1">漏洞</span>
+          <span className="min-w-0 flex-1">{uiText("漏洞")}</span>
           <button
             type="button"
             className="inline-flex items-center gap-1 outline-none focus-visible:underline"
-            aria-label={`发现时间当前${sortPreference.direction === "asc" ? "正序" : "倒序"}，点击切换排序方向`}
+            aria-label={uiText("发现时间当前{0}，点击切换排序方向", [sortPreference.direction === "asc" ? uiText("正序") : uiText("倒序")])}
             onClick={() =>
               setSortPreference((current) => ({
                 field: "time",
@@ -203,7 +210,7 @@ export function FindingsTab({ taskId }: { taskId: string }) {
               }))
             }
           >
-            <span>发现时间</span>
+            <span>{uiText("发现时间")}</span>
             {sortPreference.direction === "asc" ? (
               <ArrowUpIcon className="size-3.5" />
             ) : (
@@ -215,7 +222,7 @@ export function FindingsTab({ taskId }: { taskId: string }) {
           <Row key={f.id} f={f} contextTaskId={taskId} onStatus={onStatus} />
         ))}
         {items.length === 0 && (
-          <p className="px-4 py-8 text-center text-sm text-muted-foreground">本任务及直接关联任务暂无确认发现。</p>
+          <p className="px-4 py-8 text-center text-sm text-muted-foreground">{uiText("本任务及直接关联任务暂无确认发现。")}</p>
         )}
       </CardContent>
     </Card>
